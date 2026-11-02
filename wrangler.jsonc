@@ -1,0 +1,24 @@
+// Ghost Cat Tens on Cloudflare Workers.
+// The game is the static page in ./public; the Worker only answers /api/*.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ghost-cat-tens",
+  "main": "./src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "observability": { "enabled": true },
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    // "production" enforces https and no private addresses on the agent URL.
+    "ENVIRONMENT": "production",
+    // Seconds one generated set of ghost lines is reused. Each new set bills one agent turn.
+    "LINES_CACHE_SECONDS": "600"
+  }
+  // Secrets (never commit them):
+  //   npx wrangler secret put MANYFOLD_AGENT_RPC_URL   # the agent's A2A endpoint
+  //   npx wrangler secret put MANYFOLD_AGENT_TOKEN     # the agent's A2A bearer token
+}
