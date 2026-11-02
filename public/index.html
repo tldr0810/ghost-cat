@@ -76,7 +76,7 @@ svg.cat{display:block;overflow:visible}
 .bubble p.pop{animation:pop .3s ease-out}
 @keyframes pop{from{transform:translateY(5px) rotate(-1deg);opacity:.2}}
 
-.board{position:relative;align-self:center;width:min(100%, calc((100dvh - 290px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 10 / 13.2));
+.board{position:relative;align-self:center;width:min(100%, calc((100dvh - 302px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 10 / 13.2));
   display:grid;grid-template-columns:repeat(10,1fr);gap:7px 4px;padding:10px 4px 4px;touch-action:none;user-select:none;-webkit-user-select:none}
 /* a number tile is a black cat head */
 .cell{position:relative;aspect-ratio:1;display:grid;place-items:center;color:#fff;
@@ -127,6 +127,98 @@ html[lang="en"] h1{font-size:28px;letter-spacing:0}
 .draw-head button{padding:6px 12px;font-size:14px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:13px;font-weight:700;background:var(--ink);color:var(--paper);border-radius:999px;padding:2px 10px}
+
+/* ================= polish & motion ================= */
+:root{--ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1)}
+/* screens slide in, their parts follow one by one */
+.enter>*{animation:rise .5s var(--ease) backwards;animation-delay:calc(var(--i,0) * 55ms)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+/* idle cats: tail sways, eyes blink, the hero breathes */
+.tail{transform-box:view-box;transform-origin:70px 89px;animation:wag 2.6s ease-in-out infinite}
+@keyframes wag{0%,100%{transform:rotate(0)}50%{transform:rotate(-9deg)}}
+.eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.8s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.hero-cat svg{animation:breathe 3.2s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes breathe{50%{transform:scale(1.025,.985)}}
+.hero-cat .s,.result-cat .s{animation:twinkle 2.2s ease-in-out infinite}
+.hero-cat .s:nth-of-type(2),.result-cat .s:nth-of-type(2){animation-delay:.7s}
+.result-cat .s:nth-of-type(3){animation-delay:1.3s}
+@keyframes twinkle{50%{transform:scale(.7) rotate(25deg);opacity:.45}}
+/* buttons feel pressable */
+button{transition:transform .15s var(--ease),background .2s,color .2s,box-shadow .15s}
+@media (hover:hover){button:hover{transform:translateY(-2px);box-shadow:3px 4px 0 var(--ink)}button.solid:hover{box-shadow:3px 4px 0 var(--ink-2)}}
+button:active{transform:translateY(1px) scale(.98);box-shadow:none}
+.rival{transition:transform .2s var(--ease),opacity .25s,box-shadow .15s}
+.rival svg{transition:transform .3s var(--spring)}
+@media (hover:hover){.rival:hover svg{transform:translateY(-4px) rotate(-4deg)}}
+/* waking a ghost: the picked card floats, the others step back */
+.rivals.busy .rival:not(.waking){opacity:.35;pointer-events:none}
+.rival.waking svg{animation:float 1.1s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-7px) rotate(3deg)}}
+.rival.waking .tag::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+/* round card: numbers spin like a slot when you draw */
+.draw-head b.spin{animation:slot .38s var(--ease)}
+@keyframes slot{0%{transform:translateY(-8px);opacity:.2;filter:blur(1.5px)}}
+.chip{animation:popin .35s var(--spring) backwards;animation-delay:calc(var(--i,0) * 50ms + 80ms)}
+@keyframes popin{from{transform:scale(.4);opacity:0}}
+/* board: cats drop in row by row */
+.board.drop .cell:not(.e){animation:drop .45s var(--spring) backwards;animation-delay:calc(var(--r) * 28ms + var(--c) * 8ms)}
+@keyframes drop{from{transform:translateY(-26px) scale(.6);opacity:0}}
+.board.dim{filter:blur(6px);opacity:.25;pointer-events:none;transition:filter .3s,opacity .3s}
+.board{transition:filter .3s,opacity .3s}
+.cell.in{transition:transform .12s var(--spring),box-shadow .12s}
+/* wrong sum: the box shakes */
+.selbox.bad{animation:nope .36s ease both}
+@keyframes nope{20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}100%{opacity:0}}
+/* nudge: after a quiet spell, a soft dashed paw-box shows one possible move */
+.nudge{position:absolute;border:2.5px dashed var(--ink-2);border-radius:14px;pointer-events:none;animation:nudge 1.2s ease-in-out 2}
+@keyframes nudge{0%,100%{opacity:0;transform:scale(1.06)}30%,70%{opacity:1;transform:scale(1)}}
+/* points float up from a clear */
+.plus{position:fixed;z-index:7;pointer-events:none;font-family:var(--f-num);font-size:28px;line-height:1;color:var(--ink);
+  -webkit-text-stroke:5px var(--paper);paint-order:stroke;animation:plus .9s var(--ease) forwards;transform:translate(-50%,-50%)}
+.plus small{font-size:18px}
+@keyframes plus{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}25%{transform:translate(-50%,-80%) scale(1.15);opacity:1}100%{transform:translate(-50%,-190%) scale(1);opacity:0}}
+.bump{animation:bump .38s var(--spring)}
+@keyframes bump{40%{transform:scale(1.4) rotate(-6deg)}}
+.hop{animation:hop .4s var(--ease)}
+@keyframes hop{40%{transform:translateY(-8px) rotate(-8deg)}}
+/* hud row: pause button + track */
+.trackrow{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center}
+.iconbtn{width:34px;height:34px;padding:0;display:grid;place-items:center;border-radius:50%;border-width:2px}
+.iconbtn svg{display:block}
+/* overlays: countdown, time up, pause menu */
+.overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;pointer-events:none}
+.overlay.modal{pointer-events:auto;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:fadein .2s ease both}
+@keyframes fadein{from{opacity:0}}
+.count{font-family:var(--f-num);font-size:120px;line-height:1;color:var(--ink);-webkit-text-stroke:8px var(--paper);paint-order:stroke;animation:count .6s var(--spring) both}
+.count.go{font-family:var(--f-body);font-weight:900;font-size:56px;letter-spacing:.08em}
+@keyframes count{0%{transform:scale(2.2) rotate(-12deg);opacity:0}35%{transform:scale(1) rotate(0);opacity:1}80%{opacity:1}100%{transform:scale(.8);opacity:0}}
+.stamp{font-weight:900;font-size:40px;letter-spacing:.06em;background:var(--ink);color:var(--paper);padding:10px 26px;border-radius:var(--hand);
+  animation:stamp .5s var(--spring) both}
+@keyframes stamp{from{transform:scale(2.4) rotate(-14deg);opacity:0}to{transform:rotate(-4deg)}}
+.sheet{pointer-events:auto;width:min(100%,340px);background:var(--paper);border:2.5px solid var(--ink);border-radius:var(--hand);
+  padding:22px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;box-shadow:6px 7px 0 var(--ink);animation:sheet .38s var(--spring) both}
+@keyframes sheet{from{transform:translateY(30px) scale(.94);opacity:0}}
+.sheet h2{margin:0;font-size:24px;font-weight:900}
+.sheet .muted{font-size:13px}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;width:100%}
+.sheet .stack button{width:100%}
+.sheet svg.cat{animation:breathe 2.4s ease-in-out infinite;transform-origin:50% 100%}
+/* result entrance */
+.result-cat svg{animation:land .7s var(--spring) backwards}
+@keyframes land{from{transform:translateY(-40px) scale(.7);opacity:0}}
+.verdict{animation:stampv .5s var(--spring) .25s backwards}
+@keyframes stampv{from{transform:scale(1.6);opacity:0}}
+.badge{display:inline-block;font-size:13px;font-weight:900;background:var(--ink);color:var(--paper);border-radius:999px;padding:3px 12px;
+  animation:popin .45s var(--spring) .9s both}
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));z-index:30;transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);font-weight:700;font-size:14px;padding:10px 18px;border-radius:999px;white-space:nowrap;
+  animation:toast 2.2s var(--ease) forwards}
+@keyframes toast{0%{transform:translate(-50%,24px);opacity:0}12%,85%{transform:translate(-50%,0);opacity:1}100%{transform:translate(-50%,8px);opacity:0}}
+.rival{animation:rise .45s var(--ease) backwards;animation-delay:calc(var(--i,0) * 70ms + 120ms)}
+@media (prefers-reduced-motion: reduce){.enter>*,.board.drop .cell{animation:none!important}}
 </style>
 </head>
 <body>
@@ -142,10 +234,10 @@ html[lang="en"] h1{font-size:28px;letter-spacing:0}
     <symbol id="cat-body" viewBox="0 0 100 100">
       <path d="M31 42 C29 33 27 24 28 15 C34 19 39 24 43 29 C48 27 53 27 58 29 C62 24 67 19 73 15 C74 24 72 33 70 42 C73 50 70 57 63 61 C73 67 78 78 75 93 L27 93 C23 79 28 67 38 61 C31 57 28 50 31 42 Z"/>
     </symbol>
-    <symbol id="cat-tail" viewBox="0 0 100 100"><path d="M70 89 C88 90 95 78 88 66" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="cat-tail" viewBox="0 0 100 100"><path class="tail" d="M70 89 C88 90 95 78 88 66" fill="none" stroke-linecap="round"/></symbol>
     <symbol id="cat-face" viewBox="0 0 100 100">
-      <circle cx="42" cy="45" r="5.5" fill="#fff" stroke="none"/><circle cx="60" cy="45" r="5.5" fill="#fff" stroke="none"/>
-      <circle cx="42.8" cy="45.5" r="2.6" fill="#141414" stroke="none"/><circle cx="60.8" cy="45.5" r="2.6" fill="#141414" stroke="none"/>
+      <g class="eyes"><circle cx="42" cy="45" r="5.5" fill="#fff" stroke="none"/><circle cx="60" cy="45" r="5.5" fill="#fff" stroke="none"/>
+      <circle cx="42.8" cy="45.5" r="2.6" fill="#141414" stroke="none"/><circle cx="60.8" cy="45.5" r="2.6" fill="#141414" stroke="none"/></g>
       <g stroke="#141414" stroke-width="1.6" stroke-linecap="round" fill="none">
         <path d="M30 50 L15 47"/><path d="M30 54 L15 55"/><path d="M71 50 L86 47"/><path d="M71 54 L86 55"/>
       </g>
@@ -192,7 +284,10 @@ html[lang="en"] h1{font-size:28px;letter-spacing:0}
       <div class="timer" id="timer">90</div>
       <div class="side right"><div><span class="nm" id="ghName"></span><strong id="sGhost">0</strong></div><span id="ghIcon"></span></div>
     </div>
-    <div class="track" aria-hidden="true"><div class="line"></div><div class="fill" id="fill"></div><div class="runner" id="runner"></div></div>
+    <div class="trackrow">
+      <button class="iconbtn" id="pauseBtn" type="button"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="1" width="3.6" height="12" rx="1.4" fill="currentColor"/><rect x="8.4" y="1" width="3.6" height="12" rx="1.4" fill="currentColor"/></svg></button>
+      <div class="track" aria-hidden="true"><div class="line"></div><div class="fill" id="fill"></div><div class="runner" id="runner"></div></div>
+    </div>
     <div class="rivalrow">
       <div class="mini" id="mini"></div>
       <div class="bubble" aria-live="polite"><div class="who" id="bubbleWho"></div><p id="bubbleText">…</p></div>
@@ -205,6 +300,7 @@ html[lang="en"] h1{font-size:28px;letter-spacing:0}
   <section id="result" class="wrap result" hidden>
     <div class="result-cat" id="resultCat"></div>
     <div class="verdict" id="verdict"></div>
+    <span class="badge" id="newBest" hidden></span>
     <div class="vs">
       <div><span id="rYou">0</span><small data-t="you"></small></div>
       <div class="dash">:</div>
@@ -219,6 +315,20 @@ html[lang="en"] h1{font-size:28px;letter-spacing:0}
       <button id="back" type="button" data-t="back"></button>
     </div>
   </section>
+</div>
+
+<div class="overlay" id="fx" aria-live="assertive"></div>
+<div class="overlay modal" id="pauseMenu" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" hidden>
+  <div class="sheet">
+    <div id="pauseCat"></div>
+    <h2 id="pauseTitle" data-t="paused"></h2>
+    <p class="muted" data-t="pausedNote"></p>
+    <div class="stack">
+      <button class="solid" id="resumeBtn" type="button" data-t="resume"></button>
+      <button id="restartBtn" type="button" data-t="restart"></button>
+      <button id="quitBtn" type="button" data-t="quit"></button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -245,7 +355,7 @@ const STR={
     share:'分享戰報', shared:'已分享', copied:'已複製戰報', again:'再戰一次', back:'換一隻幽靈貓',
     sSelf:'湊十幽靈貓：我 {a} 分，上一局的我 {b} 分。', sWin:'湊十幽靈貓：我 {a} 比 {b} 打爆了 {name} 的幽靈貓，你來試試？',
     sTie:'湊十幽靈貓：我 {a} 比 {b} 逼平了 {name} 的幽靈貓，你來試試？', sLose:'湊十幽靈貓：我 {a} 比 {b} 輸給了 {name} 的幽靈貓，你來試試？',
-    miniLabel:'幽靈貓的盤面', waking:'叫醒中…'
+    miniLabel:'幽靈貓的盤面', waking:'叫醒中', go:'開始！', timeUp:'時間到！', noMoves:'沒步了！', newBest:'新紀錄！', shareFail:'分享失敗，再試一次', pause:'暫停', paused:'暫停中', pausedNote:'幽靈貓也停下來等你了。', resume:'繼續', restart:'重新開始', quit:'回主畫面'
   },
   hans:{
     roundNo:'第 {n} 局', reroll:'换一局', ruleTarget:'凑 {t}', ruleTime:'{s} 秒', ruleSmall:'只有 1 到 5', ruleBonus:'大框加倍', rulePairs:'只能两只一组', hintT:'拖动框住猫咪，数字加起来 {t} 就消除。', hintPairs:'这局一次只能框两只。', hintBonus:'一次框 4 只以上分数加倍。',
@@ -265,7 +375,7 @@ const STR={
     share:'分享战报', shared:'已分享', copied:'已复制战报', again:'再战一次', back:'换一只幽灵猫',
     sSelf:'凑十幽灵猫：我 {a} 分，上一局的我 {b} 分。', sWin:'凑十幽灵猫：我 {a} 比 {b} 打爆了 {name} 的幽灵猫，你来试试？',
     sTie:'凑十幽灵猫：我 {a} 比 {b} 逼平了 {name} 的幽灵猫，你来试试？', sLose:'凑十幽灵猫：我 {a} 比 {b} 输给了 {name} 的幽灵猫，你来试试？',
-    miniLabel:'幽灵猫的盘面', waking:'叫醒中…'
+    miniLabel:'幽灵猫的盘面', waking:'叫醒中', go:'开始！', timeUp:'时间到！', noMoves:'没步了！', newBest:'新纪录！', shareFail:'分享失败，再试一次', pause:'暂停', paused:'暂停中', pausedNote:'幽灵猫也停下来等你了。', resume:'继续', restart:'重新开始', quit:'回主画面'
   },
   en:{
     roundNo:'Round {n}', reroll:'Draw another', ruleTarget:'Make {t}', ruleTime:'{s} seconds', ruleSmall:'Only 1 to 5', ruleBonus:'Big boxes score double', rulePairs:'Pairs only', hintT:'Box cats that add up to {t} to clear them.', hintPairs:'This round, a box must hold exactly two cats.', hintBonus:'Boxes of 4 or more cats score double.',
@@ -285,7 +395,7 @@ const STR={
     share:'Share result', shared:'Shared', copied:'Copied', again:'Play again', back:'Pick another ghost cat',
     sSelf:'Ghost Cat Tens: I scored {a}, past me scored {b}.', sWin:'Ghost Cat Tens: I beat {name}\'s ghost cat {a} to {b}. Your turn?',
     sTie:'Ghost Cat Tens: I drew with {name}\'s ghost cat, {a} to {b}. Your turn?', sLose:'Ghost Cat Tens: {name}\'s ghost cat beat me {b} to {a}. Your turn?',
-    miniLabel:'Ghost cat board', waking:'Waking…'
+    miniLabel:'Ghost cat board', waking:'Waking', go:'Go!', timeUp:'Time!', noMoves:'No moves!', newBest:'New best!', shareFail:'Could not share. Try again', pause:'Pause', paused:'Paused', pausedNote:'The ghost cat is waiting for you too.', resume:'Resume', restart:'Restart', quit:'Back to home'
   }
 };
 function pickLang(){
@@ -305,7 +415,7 @@ function applyLang(){
   document.documentElement.lang=t('htmlLang');document.title=t('title');
   document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(k.endsWith('Html'))el.innerHTML=t(k);else el.textContent=t(k);});
   document.querySelectorAll('#langs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===LANG)));
-  $('mini').setAttribute('aria-label',t('miniLabel'));$('hint').textContent=t('hint');
+  $('mini').setAttribute('aria-label',t('miniLabel'));$('pauseBtn').setAttribute('aria-label',t('pause'));$('hint').textContent=t('hint');
 }
 function setLang(l){LANG=l;store('ghost10.lang',l);applyLang();renderRivals();renderDraw();}
 document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
@@ -371,9 +481,9 @@ function drawVariant(i){CUR=variant(i??Math.floor(Math.random()*VARIANTS));rende
 function renderDraw(){
   if(!CUR)return;const d=$('draw');
   d.innerHTML='<div class="draw-head"><b></b><button type="button" id="reroll"></button></div><div class="chips"></div>';
-  d.querySelector('b').textContent=roundLabel(CUR);
+  const lb=d.querySelector('b');lb.textContent=roundLabel(CUR);lb.classList.add('spin');
   const btn=d.querySelector('#reroll');btn.textContent=t('reroll');btn.onclick=()=>drawVariant();
-  const ch=d.querySelector('.chips');for(const x of ruleChips(CUR)){const s=document.createElement('span');s.className='chip';s.textContent=x;ch.appendChild(s);}
+  const ch=d.querySelector('.chips');ruleChips(CUR).forEach((x,k)=>{const s=document.createElement('span');s.className='chip';s.style.setProperty('--i',k);s.textContent=x;ch.appendChild(s);});
 }
 
 function clearRect(b,m){const idx=[];for(let r=m.r1;r<=m.r2;r++)for(let c=m.c1;c<=m.c2;c++){const i=r*COLS+c;if(b[i]){idx.push(i);b[i]=0;}}return idx;}
@@ -443,7 +553,7 @@ const Platform={
 };
 
 async function renderRivals(){
-  const list=$('rivals');list.innerHTML='';
+  const list=$('rivals');list.innerHTML='';list.classList.remove('busy');
   const all=[...(await Platform.getFriendGhosts())];const me=selfGhost();if(me)all.push(me);
   for(const g of all){
     const best=store('ghost10.best.'+g.id);
@@ -453,7 +563,8 @@ async function renderRivals(){
     b.querySelector('b').textContent=gName(g);
     b.querySelector('small').textContent=desc+(best!=null?'\n'+t('best',{n:best}):'');b.querySelector('small').style.whiteSpace='pre-line';
     b.querySelector('.tag').textContent=tag;
-    b.onclick=()=>{b.querySelector('.tag').textContent=t('waking');startGame(g);};list.appendChild(b);
+    b.style.setProperty('--i',list.children.length);
+    b.onclick=()=>{if(starting)return;list.classList.add('busy');b.classList.add('waking');b.querySelector('.tag').textContent=t('waking');startGame(g);};list.appendChild(b);
     if(!g.self)Platform.getLines(g);
   }
 }
@@ -462,7 +573,7 @@ async function renderRivals(){
 let G=null,cells=[],minis=[];
 function buildGrids(){
   const bd=$('board'),mi=$('mini');bd.innerHTML='';mi.innerHTML='';cells=[];minis=[];
-  for(let i=0;i<N;i++){const d=document.createElement('div');d.className='cell';bd.appendChild(d);cells.push(d);
+  for(let i=0;i<N;i++){const d=document.createElement('div');d.className='cell';d.style.setProperty('--r',Math.floor(i/COLS));d.style.setProperty('--c',i%COLS);bd.appendChild(d);cells.push(d);
     const m=document.createElement('i');mi.appendChild(m);minis.push(m);}
   const box=document.createElement('div');box.className='selbox';box.hidden=true;box.innerHTML='<span class="sum"></span>';bd.appendChild(box);
 }
@@ -482,26 +593,79 @@ async function startGame(ghost){
   buildGrids();
   const V=ghost.self?variant(ghost.v):CUR;
   G={ghost,lines,V,seed:V.seed,you:makeBoard(V.seed,V.max),gh:makeBoard(V.seed,V.max),sYou:0,sGh:0,t0:performance.now(),moves:[],
-     leader:0,lastSay:0,saidLast:false,over:false,ghostTimer:null,ghostStuck:false,replayIdx:0,lastLine:''};
+     leader:0,lastSay:0,saidLast:false,over:false,ghostTimer:null,ghostStuck:false,replayIdx:0,lastLine:'',
+     ready:false,paused:false,pausedAt:0,lastAct:0,nudged:0};
   $('ghName').textContent=gName(ghost);$('bubbleWho').textContent=t('ghostOf',{name:gName(ghost)});
   $('sYou').textContent=0;$('sGhost').textContent=0;$('hint').textContent=ruleHint(V);
-  show('game');paint();say('start',true);scheduleGhost();
+  $('timer').textContent=V.time;$('timer').classList.remove('low');$('fill').style.width='100%';$('runner').style.left='100%';
+  $('bubbleText').textContent='…';
+  show('game');paint();
+  const bd=$('board');bd.classList.remove('drop');void bd.offsetWidth;bd.classList.add('drop');
+  const me=G;
+  if(await countdown(3,600)&&G===me&&!G.paused)beginPlay();
+}
+function beginPlay(){
+  G.ready=true;G.t0=performance.now();G.lastAct=0;$('board').classList.remove('drop');
+  say('start',true);scheduleGhost();
   G.tick=setInterval(tick,200);tick();
 }
+/* 3, 2, 1, go. Resolves false if something (pause, quit) cancels it. */
+let cdToken=0;
+function countdown(n,ms){
+  const tok=++cdToken,fx=$('fx');
+  return new Promise(res=>{
+    let k=n;
+    const step=()=>{
+      if(tok!==cdToken)return res(false);
+      if(k===0){fx.innerHTML='<div class="count go"></div>';fx.firstChild.textContent=t('go');
+        setTimeout(()=>{if(tok===cdToken)fx.innerHTML='';},560);return res(true);}
+      fx.innerHTML='<div class="count">'+k+'</div>';k--;setTimeout(step,ms);
+    };
+    step();
+  });
+}
+/* ---------- pause menu ---------- */
+function pauseGame(){
+  if(!G||G.over||G.paused||$('game').hidden)return;
+  G.paused=true;G.pausedAt=performance.now();clearTimeout(G.ghostTimer);cdToken++;$('fx').innerHTML='';
+  drag=null;drawSel();$('board').classList.add('dim');
+  $('pauseCat').innerHTML=catSVG(84,true,'<text x="78" y="22" font-family="Gaegu,cursive" font-size="20" fill="#141414">z</text><text x="88" y="8" font-family="Gaegu,cursive" font-size="14" fill="#141414">z</text>');
+  $('pauseMenu').hidden=false;$('resumeBtn').focus();
+}
+async function resumeGame(){
+  if(!G||!G.paused)return;
+  $('pauseMenu').hidden=true;$('board').classList.remove('dim');
+  const me=G;
+  if(!await countdown(3,450)||G!==me||G.over)return;
+  G.paused=false;
+  if(!G.ready){beginPlay();return;}
+  G.t0+=performance.now()-G.pausedAt;scheduleGhost();tick();
+}
+function stopGame(){
+  if(!G)return;G.over=true;clearInterval(G.tick);clearTimeout(G.ghostTimer);cdToken++;
+  $('fx').innerHTML='';$('pauseMenu').hidden=true;$('board').classList.remove('dim');drag=null;
+}
+$('pauseBtn').onclick=pauseGame;
+$('resumeBtn').onclick=resumeGame;
+$('restartBtn').onclick=()=>{const g=G.ghost;stopGame();startGame(g);};
+$('quitBtn').onclick=()=>{stopGame();renderRivals();show('start');};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!G||G.over||$('game').hidden)return;G.paused?resumeGame():pauseGame();});
 function ruleHint(V){let h=t('hintT',{t:V.target});if(V.pairs)h+=' '+t('hintPairs');if(V.bonus)h+=' '+t('hintBonus');return h;}
 function elapsed(){return(performance.now()-G.t0)/1000;}
 function tick(){
-  if(G.over)return;
+  if(G.over||G.paused||!G.ready)return;
+  if(elapsed()-G.lastAct>8&&performance.now()-G.nudged>10000){G.nudged=performance.now();showNudge();}
   const left=Math.max(0,G.V.time-elapsed()),pct=left/G.V.time*100;
   $('timer').textContent=Math.ceil(left);$('timer').classList.toggle('low',left<=10);
   $('fill').style.width=pct+'%';$('runner').style.left=pct+'%';
   if(left<=10&&!G.saidLast){G.saidLast=true;say('last',true);}
   if(G.ghost.replay)replayStep();
-  if(left<=0)endGame();
+  if(left<=0)endGame('time');
 }
-function scheduleGhost(){if(G.ghost.replay)return;const[a,b]=G.ghost.pace;G.ghostTimer=setTimeout(ghostMove,(a+Math.random()*(b-a))*1000);}
+function scheduleGhost(){if(G.ghost.replay||G.over)return;clearTimeout(G.ghostTimer);const[a,b]=G.ghost.pace;G.ghostTimer=setTimeout(ghostMove,(a+Math.random()*(b-a))*1000);}
 function ghostMove(){
-  if(G.over)return;const ms=allMoves(G.gh,G.V.target,G.V.pairs);
+  if(G.over||G.paused)return;const ms=allMoves(G.gh,G.V.target,G.V.pairs);
   if(!ms.length){if(!G.ghostStuck){G.ghostStuck=true;say('stuck',true);}return;}
   let pick;
   if(G.ghost.pick==='small'){ms.sort((x,y)=>x.area-y.area||x.n-y.n);pick=ms[Math.floor(Math.random()*Math.min(6,ms.length))];}
@@ -511,7 +675,7 @@ function ghostMove(){
 function replayStep(){const tt=elapsed(),mv=G.ghost.replay;while(G.replayIdx<mv.length&&mv[G.replayIdx].t<=tt){applyGhost(mv[G.replayIdx]);G.replayIdx++;}}
 function applyGhost(m){
   const idx=clearRect(G.gh,m);if(!idx.length)return;
-  G.sGh+=pts(idx.length);$('sGhost').textContent=G.sGh;
+  G.sGh+=pts(idx.length);$('sGhost').textContent=G.sGh;replay($('sGhost'),'bump');replay($('ghIcon'),'hop');
   for(const i of idx){minis[i].classList.add('flash');setTimeout(()=>{minis[i].classList.remove('flash');minis[i].classList.add('e');},350);}
   if(idx.length>=4)say('big',false,{n:idx.length});
   checkLead();
@@ -526,46 +690,80 @@ function cellAt(x,y){
   return{r:Math.min(ROWS-1,Math.max(0,Math.floor((y-r0.top)/ch))),c:Math.min(COLS-1,Math.max(0,Math.floor((x-r0.left)/cw)))};
 }
 function norm(a,b){return{r1:Math.min(a.r,b.r),c1:Math.min(a.c,b.c),r2:Math.max(a.r,b.r),c2:Math.max(a.c,b.c)};}
+function boxStyle(m){
+  const bd=board().getBoundingClientRect(),tl=cells[m.r1*COLS+m.c1].getBoundingClientRect(),br=cells[m.r2*COLS+m.c2].getBoundingClientRect();
+  return{left:(tl.left-bd.left-4)+'px',top:(tl.top-bd.top-7)+'px',width:(br.right-tl.left+8)+'px',height:(br.bottom-tl.top+11)+'px'};
+}
+function showNudge(){
+  const ms=allMoves(G.you,G.V.target,G.V.pairs);if(!ms.length)return;
+  ms.sort((a,b)=>a.area-b.area);const m=ms[Math.floor(Math.random()*Math.min(4,ms.length))];
+  const d=document.createElement('div');d.className='nudge';Object.assign(d.style,boxStyle(m));board().appendChild(d);setTimeout(()=>d.remove(),2500);
+}
+function replay(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);}
+function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
+function floatPlus(x,y,n,dbl){
+  const el=document.createElement('div');el.className='plus';el.style.left=x+'px';el.style.top=y+'px';
+  el.textContent='+'+n;if(dbl){const s=document.createElement('small');s.textContent=' ×2';el.appendChild(s);}
+  document.body.appendChild(el);setTimeout(()=>el.remove(),950);
+}
 function drawSel(){
   const box=board().querySelector('.selbox');
   if(!drag){box.hidden=true;cells.forEach(c=>c.classList.remove('in'));return;}
-  const m=norm(drag.a,drag.b),bd=board().getBoundingClientRect();
-  const tl=cells[m.r1*COLS+m.c1].getBoundingClientRect(),br=cells[m.r2*COLS+m.c2].getBoundingClientRect();
-  Object.assign(box.style,{left:(tl.left-bd.left-4)+'px',top:(tl.top-bd.top-7)+'px',width:(br.right-tl.left+8)+'px',height:(br.bottom-tl.top+11)+'px'});
+  const m=norm(drag.a,drag.b);
+  Object.assign(box.style,boxStyle(m));
   const{s,n}=rectInfo(G.you,m),ok=s===G.V.target&&(!G.V.pairs||n===2);box.hidden=false;box.classList.toggle('ok',ok);box.querySelector('.sum').textContent=ok?'★':s;
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)cells[r*COLS+c].classList.toggle('in',r>=m.r1&&r<=m.r2&&c>=m.c1&&c<=m.c2&&!!G.you[r*COLS+c]);
 }
 document.addEventListener('pointerdown',e=>{
-  if(!G||G.over||!board().contains(e.target))return;
+  if(!G||G.over||!G.ready||G.paused||!board().contains(e.target))return;
   e.preventDefault();const p=cellAt(e.clientX,e.clientY);drag={a:p,b:p,id:e.pointerId};
   try{board().setPointerCapture(e.pointerId);}catch(_){}drawSel();
 });
 document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;drag.b=cellAt(e.clientX,e.clientY);drawSel();});
 function finish(e){
   if(!drag||e.pointerId!==drag.id)return;
-  const m=norm(drag.a,drag.b);drag=null;drawSel();if(G.over)return;
-  {const ri=rectInfo(G.you,m);if(ri.s!==G.V.target||(G.V.pairs&&ri.n!==2))return;}
+  const m=norm(drag.a,drag.b);drag=null;
+  const ri=rectInfo(G.you,m),ok=ri.s===G.V.target&&(!G.V.pairs||ri.n===2);
+  if(!ok&&ri.n>=2&&!G.over&&!G.paused){
+    const bad=board().querySelector('.selbox').cloneNode(true);bad.classList.remove('ok');bad.classList.add('bad');bad.hidden=false;
+    board().appendChild(bad);setTimeout(()=>bad.remove(),420);buzz(30);
+  }
+  drawSel();if(G.over||G.paused||!ok)return;
   const rects=[];for(let r=m.r1;r<=m.r2;r++)for(let c=m.c1;c<=m.c2;c++){const i=r*COLS+c;if(G.you[i])rects.push([i,cells[i].getBoundingClientRect(),G.you[i]]);}
   const idx=clearRect(G.you,m);G.moves.push({t:+elapsed().toFixed(2),...m});
-  G.sYou+=pts(idx.length);$('sYou').textContent=G.sYou;paint();
+  const gain=pts(idx.length);G.sYou+=gain;$('sYou').textContent=G.sYou;paint();G.lastAct=elapsed();
+  replay($('sYou'),'bump');buzz(12);
   rects.forEach(([i,rc,v],k)=>{
     const f=document.createElement('div');f.className='cell fly';f.textContent=v;
     f.style.cssText=`left:${rc.left}px;top:${rc.top}px;width:${rc.width}px;height:${rc.height}px;--dx:${(k%2?1:-1)*(10+Math.random()*16)}px;--r:${(k%2?1:-1)*20}deg;animation-delay:${k*40}ms`;
     document.body.appendChild(f);setTimeout(()=>f.remove(),700+k*40);
   });
-  const a=rects[0][1],z=rects[rects.length-1][1];sparkle((a.left+z.right)/2,(a.top+z.bottom)/2,3+Math.min(5,idx.length));
+  const a=rects[0][1],z=rects[rects.length-1][1],cx=(a.left+z.right)/2,cy=(a.top+z.bottom)/2;
+  sparkle(cx,cy,3+Math.min(5,idx.length));floatPlus(cx,cy,gain,gain>idx.length);
   checkLead();
-  if(!allMoves(G.you,G.V.target,G.V.pairs).length){$('hint').textContent=t('stuck');setTimeout(endGame,700);}
+  if(!allMoves(G.you,G.V.target,G.V.pairs).length){$('hint').textContent=t('stuck');G.ready=false;setTimeout(()=>endGame('stuck'),500);}
 }
 document.addEventListener('pointerup',finish);document.addEventListener('pointercancel',finish);
 
 /* ---------- end ---------- */
-function endGame(){
-  if(G.over)return;G.over=true;clearInterval(G.tick);clearTimeout(G.ghostTimer);
+function countUp(el,n){
+  const t0=performance.now(),d=750;
+  const f=now=>{const p=Math.min(1,(now-t0)/d);el.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f);};
+  el.textContent=0;requestAnimationFrame(f);
+}
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(x=>x.remove());
+  const el=document.createElement('div');el.className='toast';el.setAttribute('role','status');el.textContent=msg;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),2300);
+}
+function endGame(reason){
+  if(G.over)return;G.over=true;clearInterval(G.tick);clearTimeout(G.ghostTimer);drag=null;drawSel();
+  {const fx=$('fx');fx.innerHTML='<div class="stamp"></div>';fx.firstChild.textContent=reason==='stuck'?t('noMoves'):t('timeUp');buzz([20,60,20]);}
   const g=G.ghost,name=gName(g),win=G.sYou>G.sGh,tie=G.sYou===G.sGh,v={a:G.sYou,b:G.sGh,name};
   say(win?'ghostLose':'ghostWin',true);
   Platform.saveRun({v:G.V.i,moves:G.moves,score:G.sYou});
   const bk='ghost10.best.'+g.id,best=store(bk);if(best==null||G.sYou>best)store(bk,G.sYou);
+  const nb=best!=null&&G.sYou>best;$('newBest').hidden=!nb;$('newBest').textContent=t('newBest');
   $('resultCat').innerHTML=win
     ? catSVG(150,false)+'<span class="s" style="left:-6px;top:10px">☆</span><span class="s" style="right:-4px;top:-4px">★</span><span class="s" style="right:-14px;top:60px">☆</span><span class="s" style="left:6px;top:-12px;font-size:15px">★</span>'
     : catSVG(150,true)+'<span class="s" style="right:-6px;top:0;font-family:var(--f-num);font-size:28px">z z</span>';
@@ -580,10 +778,12 @@ function endGame(){
     $('noticeLbl').textContent=t('sending');
     Platform.notifyFriend(g,$('noticeText').textContent).then(ok=>{$('noticeLbl').textContent=ok?t('sent'):t('local');});
   }
-  setTimeout(()=>show('result'),900);
+  const me=G;
+  setTimeout(()=>{if(G!==me)return;$('fx').innerHTML='';show('result');countUp($('rYou'),me.sYou);countUp($('rGhost'),me.sGh);},1150);
 }
-function show(id){for(const s of['start','game','result'])$(s).hidden=s!==id;$('langs').hidden=id!=='start';window.scrollTo(0,0);}
-$('share').onclick=async()=>{const r=await Platform.shareResult(G.share);$('share').textContent=r==='copied'?t('copied'):r==='shared'?t('shared'):t('share');setTimeout(()=>$('share').textContent=t('share'),2000);};
+function show(id){for(const s of['start','game','result'])$(s).hidden=s!==id;
+  {const sec=$(id);sec.classList.remove('enter');[...sec.children].forEach((c,k)=>c.style.setProperty('--i',k));void sec.offsetWidth;sec.classList.add('enter');}$('langs').hidden=id!=='start';window.scrollTo(0,0);}
+$('share').onclick=async()=>{const r=await Platform.shareResult(G.share);if(r==='copied')toast(t('copied'));else if(r==='shared')toast(t('shared'));else if(r==='failed')toast(t('shareFail'));};
 $('again').onclick=()=>{const g=G.ghost.self?(selfGhost()||G.ghost):G.ghost;startGame(g);};
 $('back').onclick=()=>{renderRivals();show('start');};
 
@@ -594,8 +794,8 @@ $('youIcon').innerHTML=catSVG(30,false);$('ghIcon').innerHTML=catSVG(30,true);
 $('runner').innerHTML=catSVG(22,false);
 function fromHash(){const m=/^#v(\d{1,4})$/.exec(location.hash);drawVariant(m?Number(m[1])-1:undefined);}
 fromHash();
-addEventListener('hashchange',()=>{if(G&&!G.over){G.over=true;clearInterval(G.tick);clearTimeout(G.ghostTimer);}fromHash();renderRivals();show('start');});
-applyLang();renderRivals();
+addEventListener('hashchange',()=>{stopGame();fromHash();renderRivals();show('start');});
+applyLang();renderRivals();show('start');
 </script>
 </body>
 </html>
