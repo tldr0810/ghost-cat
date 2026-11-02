@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>湊十幽靈貓 · Ghost Cat Tens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* Ink-on-paper, one theme on purpose: black grainy cats on white, ghosts are white outline cats. */
+:root{
+  --paper:#ffffff; --ink:#141414; --ink-2:#555555; --soft:#ececec; --star:#141414;
+  --f-num:"Gaegu","Comic Sans MS",cursive;
+  --f-body:"Zen Maru Gothic","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --hand:255px 18px 225px 18px/18px 225px 18px 255px; /* hand-drawn border radius */
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-weight:500;font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));}
+.wrap{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+h1{font-weight:900;font-size:30px;margin:0;letter-spacing:.04em;line-height:1.2}
+p{margin:0}
+.muted{color:var(--ink-2)}
+button{font:inherit;font-weight:700;cursor:pointer;color:var(--ink);background:var(--paper);border:2.5px solid var(--ink);border-radius:var(--hand);padding:11px 16px}
+button:active{transform:translateY(1px)}
+button:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+.solid{background:var(--ink);color:var(--paper)}
+svg.cat{display:block;overflow:visible}
+
+/* ---------- start ---------- */
+.hero{display:grid;grid-template-columns:1fr 112px;gap:8px;align-items:end}
+.hero-cat{position:relative;width:112px;height:112px}
+.hero-cat .s{position:absolute;font-size:18px;line-height:1}
+.label{font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--ink-2)}
+.rivals{display:flex;flex-direction:column;gap:12px}
+.rival{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;text-align:left;font-weight:500;padding:12px 14px}
+.rival b{display:block;font-size:17px;font-weight:900}
+.rival small{display:block;color:var(--ink-2);font-size:13px;line-height:1.45}
+.tag{font-size:12px;font-weight:700;border:1.5px solid var(--ink);border-radius:999px;padding:1px 9px;white-space:nowrap}
+.note{border-top:2px dashed var(--soft);padding-top:12px;font-size:13px;color:var(--ink-2);display:flex;flex-direction:column;gap:6px}
+
+/* ---------- game ---------- */
+.hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.side{display:flex;align-items:center;gap:8px}
+.side.right{justify-content:flex-end;text-align:right}
+.side .nm{font-size:12px;color:var(--ink-2);line-height:1.2}
+.side strong{display:block;font-family:var(--f-num);font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.side.right strong{color:var(--paper);-webkit-text-stroke:1.6px var(--ink);paint-order:stroke}
+.timer{font-family:var(--f-num);font-size:30px;line-height:1;min-width:48px;text-align:center;font-variant-numeric:tabular-nums}
+.timer.low{animation:shake .4s infinite}
+@keyframes shake{50%{transform:rotate(-6deg) scale(1.1)}}
+.track{position:relative;height:22px}
+.track .line{position:absolute;left:0;right:0;top:15px;height:2.5px;background:var(--soft);border-radius:2px}
+.track .fill{position:absolute;left:0;top:15px;height:2.5px;background:var(--ink);border-radius:2px;transition:width .25s linear}
+.track .runner{position:absolute;top:0;width:24px;height:18px;margin-left:-12px;transition:left .25s linear}
+
+.rivalrow{display:grid;grid-template-columns:88px 1fr;gap:12px;align-items:center}
+.mini{display:grid;grid-template-columns:repeat(10,1fr);gap:1.5px;padding:5px;border:2px solid var(--ink);border-radius:var(--hand)}
+.mini i{aspect-ratio:1;border-radius:50%;border:1px solid var(--ink);transition:background .2s,transform .2s}
+.mini i.e{border-color:transparent}
+.mini i.flash{background:var(--ink);transform:scale(1.5)}
+.bubble{position:relative;border:2.5px solid var(--ink);border-radius:var(--hand);padding:8px 12px;min-height:52px;background:var(--paper)}
+.bubble::before{content:"";position:absolute;left:-9px;top:18px;width:13px;height:13px;background:var(--paper);
+  border-left:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);transform:rotate(45deg)}
+.bubble .who{font-size:12px;font-weight:700;color:var(--ink-2)}
+.bubble p{font-size:14px;line-height:1.4}
+.bubble p.pop{animation:pop .3s ease-out}
+@keyframes pop{from{transform:translateY(5px) rotate(-1deg);opacity:.2}}
+
+.board{position:relative;align-self:center;width:min(100%, calc((100dvh - 290px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 10 / 13.2));
+  display:grid;grid-template-columns:repeat(10,1fr);gap:7px 4px;padding:10px 4px 4px;touch-action:none;user-select:none;-webkit-user-select:none}
+/* a number tile is a black cat head */
+.cell{position:relative;aspect-ratio:1;display:grid;place-items:center;color:#fff;
+  font-family:var(--f-num);font-size:clamp(17px,5.4vw,24px);line-height:1;padding-top:8%;
+  background:var(--grain,none),var(--ink);background-size:60px 60px,auto;border-radius:50% 50% 46% 46%/56% 56% 44% 44%;
+  transition:transform .12s, box-shadow .12s}
+.cell::before,.cell::after{content:"";position:absolute;top:-17%;width:38%;height:42%;background:inherit;background-size:60px 60px,auto}
+.cell::before{left:2%;clip-path:polygon(4% 100%,18% 0,100% 82%)}
+.cell::after{right:2%;clip-path:polygon(0 82%,82% 0,96% 100%)}
+.cell.e{background:transparent;color:transparent}
+.cell.e::before,.cell.e::after{display:none}
+.cell.in{transform:translateY(-3px) scale(1.04);box-shadow:0 0 0 2.5px var(--paper),0 0 0 4.5px var(--ink)}
+.selbox{position:absolute;border:2.5px dashed var(--ink);border-radius:14px;pointer-events:none}
+.selbox.ok{border-style:solid;background:rgba(20,20,20,.05)}
+.sum{position:absolute;top:-15px;right:-13px;min-width:28px;height:28px;display:grid;place-items:center;border-radius:50%;
+  background:var(--paper);border:2.5px solid var(--ink);font-family:var(--f-num);font-size:19px;line-height:1;padding:0 4px}
+.selbox.ok .sum{background:var(--ink);color:var(--paper)}
+.fly{position:fixed;pointer-events:none;z-index:5;animation:fly .6s ease-out forwards}
+@keyframes fly{0%{transform:translate(0,0) rotate(0)}40%{transform:translate(var(--dx),-28px) rotate(var(--r))}100%{transform:translate(calc(var(--dx)*2),10px) rotate(calc(var(--r)*2)) scale(.4);opacity:0}}
+.spark{position:fixed;pointer-events:none;z-index:6;font-size:16px;animation:spark .7s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) rotate(90deg) scale(.3);opacity:0}}
+.hint{font-size:13px;text-align:center}
+
+/* ---------- result ---------- */
+.result{align-items:center;text-align:center;gap:14px;padding-top:12px}
+.result-cat{position:relative;width:150px;height:150px}
+.result-cat .s{position:absolute;font-size:22px}
+.verdict{font-weight:900;font-size:26px;line-height:1.3}
+.vs{display:flex;align-items:flex-end;justify-content:center;gap:28px;font-family:var(--f-num);font-size:52px;line-height:1;font-variant-numeric:tabular-nums}
+.vs .gh{color:var(--paper);-webkit-text-stroke:2px var(--ink);paint-order:stroke}
+.vs small{display:block;font-family:var(--f-body);font-size:12px;color:var(--ink-2);margin-top:4px}
+.vs .dash{font-size:32px;padding-bottom:18px}
+.result .bubble{text-align:left;width:100%}
+.result .bubble::before{display:none}
+.notice{width:100%;border:2px dashed var(--ink);border-radius:var(--hand);padding:10px 12px;text-align:left;font-size:14px;display:flex;flex-direction:column;gap:2px}
+.notice .lbl{font-size:12px;color:var(--ink-2)}
+.row{display:flex;gap:10px;flex-wrap:wrap;width:100%}
+.row button{flex:1 1 120px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+.langs{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:2px;z-index:4}
+.langs button{border:0;border-radius:8px;padding:4px 8px;font-size:13px;color:var(--ink-2);background:transparent}
+.langs button[aria-pressed="true"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.hero{padding-top:22px}
+html[lang="en"] h1{font-size:28px;letter-spacing:0}
+.draw{border:2.5px solid var(--ink);border-radius:var(--hand);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.draw-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.draw-head b{font-family:var(--f-num);font-size:24px;line-height:1}
+.draw-head button{padding:6px 12px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:13px;font-weight:700;background:var(--ink);color:var(--paper);border-radius:999px;padding:2px 10px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -16 6.2" result="dots"/>
+      <feComposite in="dots" in2="SourceAlpha" operator="in" result="speck"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="speck"/></feMerge>
+    </filter>
+    <!-- original sitting cat -->
+    <symbol id="cat-body" viewBox="0 0 100 100">
+      <path d="M31 42 C29 33 27 24 28 15 C34 19 39 24 43 29 C48 27 53 27 58 29 C62 24 67 19 73 15 C74 24 72 33 70 42 C73 50 70 57 63 61 C73 67 78 78 75 93 L27 93 C23 79 28 67 38 61 C31 57 28 50 31 42 Z"/>
+    </symbol>
+    <symbol id="cat-tail" viewBox="0 0 100 100"><path d="M70 89 C88 90 95 78 88 66" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="cat-face" viewBox="0 0 100 100">
+      <circle cx="42" cy="45" r="5.5" fill="#fff" stroke="none"/><circle cx="60" cy="45" r="5.5" fill="#fff" stroke="none"/>
+      <circle cx="42.8" cy="45.5" r="2.6" fill="#141414" stroke="none"/><circle cx="60.8" cy="45.5" r="2.6" fill="#141414" stroke="none"/>
+      <g stroke="#141414" stroke-width="1.6" stroke-linecap="round" fill="none">
+        <path d="M30 50 L15 47"/><path d="M30 54 L15 55"/><path d="M71 50 L86 47"/><path d="M71 54 L86 55"/>
+      </g>
+    </symbol>
+    <symbol id="ghost-face" viewBox="0 0 100 100">
+      <g stroke="#141414" stroke-width="2.4" stroke-linecap="round" fill="none">
+        <path d="M37 45 L46 45"/><path d="M55 45 L64 45"/><path d="M47 53 Q50 56 53 53"/>
+        <path d="M30 50 L15 47"/><path d="M30 54 L15 55"/><path d="M71 50 L86 47"/><path d="M71 54 L86 55"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+
+<nav class="langs" id="langs" aria-label="Language">
+  <button type="button" data-lang="hant">繁</button>
+  <button type="button" data-lang="hans">简</button>
+  <button type="button" data-lang="en">EN</button>
+</nav>
+
+<div class="wrap">
+  <!-- START -->
+  <section id="start" class="wrap" style="gap:18px">
+    <div class="hero">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h1 data-t="titleHtml"></h1>
+        <p class="muted" data-t="intro"></p>
+      </div>
+      <div class="hero-cat" id="heroCat"></div>
+    </div>
+    <div class="draw" id="draw"></div>
+    <div class="label" data-t="pick"></div>
+    <div id="rivals" class="rivals"></div>
+    <div class="note">
+      <p data-t="note1"></p>
+      <p data-t="note2"></p>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="wrap" hidden>
+    <div class="hud">
+      <div class="side"><span id="youIcon"></span><div><span class="nm" data-t="you"></span><strong id="sYou">0</strong></div></div>
+      <div class="timer" id="timer">90</div>
+      <div class="side right"><div><span class="nm" id="ghName"></span><strong id="sGhost">0</strong></div><span id="ghIcon"></span></div>
+    </div>
+    <div class="track" aria-hidden="true"><div class="line"></div><div class="fill" id="fill"></div><div class="runner" id="runner"></div></div>
+    <div class="rivalrow">
+      <div class="mini" id="mini"></div>
+      <div class="bubble" aria-live="polite"><div class="who" id="bubbleWho"></div><p id="bubbleText">…</p></div>
+    </div>
+    <div class="board" id="board"></div>
+    <p class="hint muted" id="hint"></p>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="wrap result" hidden>
+    <div class="result-cat" id="resultCat"></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="vs">
+      <div><span id="rYou">0</span><small data-t="you"></small></div>
+      <div class="dash">:</div>
+      <div><span class="gh" id="rGhost">0</span><small id="rGhostName"></small></div>
+    </div>
+    <div class="bubble"><div class="who" id="rWho"></div><p id="rLine"></p></div>
+    <div class="notice" id="notice"><span class="lbl" id="noticeLbl"></span><b id="noticeTo"></b><span id="noticeText"></span></div>
+    <p class="muted" style="font-size:13px" data-t="saved"></p>
+    <div class="row">
+      <button class="solid" id="share" type="button" data-t="share"></button>
+      <button id="again" type="button" data-t="again"></button>
+      <button id="back" type="button" data-t="back"></button>
+    </div>
+  </section>
+</div>
+
+<script>
+const COLS=10, ROWS=12, N=COLS*ROWS, VARIANTS=1000;
+const $=id=>document.getElementById(id);
+
+/* ================= i18n ================= */
+const STR={
+  hant:{
+    roundNo:'第 {n} 局', reroll:'換一局', ruleTarget:'湊 {t}', ruleTime:'{s} 秒', ruleSmall:'只有 1 到 5', ruleBonus:'大框加倍', rulePairs:'只能兩隻一組', hintT:'拖曳框住貓咪，數字加起來 {t} 就消除。', hintPairs:'這局一次只能框兩隻。', hintBonus:'一次框 4 隻以上分數加倍。',
+    htmlLang:'zh-Hant', title:'湊十幽靈貓', titleHtml:'湊十<br>幽靈貓',
+    intro:'框住加起來剛好 10 的貓咪，牠們就會跳走。好友不在也沒關係，你挑戰的是他的幽靈貓。',
+    pick:'選一隻幽靈貓挑戰',
+    note1:'幽靈貓是好友的分身，照他平常的速度和習慣出手，跟你在同一個盤面同時開打。打完會通知好友本人回來報仇。',
+    note2:'「上一局的你」會重播你上一局的每一步。',
+    you:'你', ghostOf:'{name}（幽靈貓）', best:'你對牠的最高分：{n}',
+    hint:'拖曳框住貓咪，數字加起來 10 就消除，一隻 1 分。', stuck:'盤面上已經湊不出 10 了，提早結算。',
+    selfName:'上一局的你', selfTag:'重播', selfDesc:'你上一局拿了 {n} 分，這次重播你的每一步。',
+    tie:'平手，再來一局分勝負', win:'你打爆了{name}的幽靈貓', lose:'{name}的幽靈貓守住了',
+    to:'給 {name}', sending:'通知好友中…', sent:'已通知好友', local:'會通知好友（單機版不會真的送出）',
+    nWin:'你的幽靈貓被打爆了，{a} 比 {b}。要回來報仇嗎？', nTie:'有人跟你的幽靈貓打成平手（{a} 比 {b}），快去分個高下。',
+    nLose:'你的幽靈貓擊退了一位挑戰者，{b} 比 {a}。對方應該會再來喔。',
+    saved:'這局的每一步已存成「上一局的你」，下次可以挑戰自己。',
+    share:'分享戰報', shared:'已分享', copied:'已複製戰報', again:'再戰一次', back:'換一隻幽靈貓',
+    sSelf:'湊十幽靈貓：我 {a} 分，上一局的我 {b} 分。', sWin:'湊十幽靈貓：我 {a} 比 {b} 打爆了 {name} 的幽靈貓，你來試試？',
+    sTie:'湊十幽靈貓：我 {a} 比 {b} 逼平了 {name} 的幽靈貓，你來試試？', sLose:'湊十幽靈貓：我 {a} 比 {b} 輸給了 {name} 的幽靈貓，你來試試？',
+    miniLabel:'幽靈貓的盤面', waking:'叫醒中…'
+  },
+  hans:{
+    roundNo:'第 {n} 局', reroll:'换一局', ruleTarget:'凑 {t}', ruleTime:'{s} 秒', ruleSmall:'只有 1 到 5', ruleBonus:'大框加倍', rulePairs:'只能两只一组', hintT:'拖动框住猫咪，数字加起来 {t} 就消除。', hintPairs:'这局一次只能框两只。', hintBonus:'一次框 4 只以上分数加倍。',
+    htmlLang:'zh-Hans', title:'凑十幽灵猫', titleHtml:'凑十<br>幽灵猫',
+    intro:'框住加起来刚好 10 的猫咪，它们就会跳走。好友不在也没关系，你挑战的是他的幽灵猫。',
+    pick:'选一只幽灵猫挑战',
+    note1:'幽灵猫是好友的分身，照他平常的速度和习惯出手，跟你在同一个盘面同时开打。打完会通知好友本人回来报仇。',
+    note2:'「上一局的你」会重播你上一局的每一步。',
+    you:'你', ghostOf:'{name}（幽灵猫）', best:'你对它的最高分：{n}',
+    hint:'拖动框住猫咪，数字加起来 10 就消除，一只 1 分。', stuck:'盘面上已经凑不出 10 了，提前结算。',
+    selfName:'上一局的你', selfTag:'重播', selfDesc:'你上一局拿了 {n} 分，这次重播你的每一步。',
+    tie:'平手，再来一局分胜负', win:'你打爆了{name}的幽灵猫', lose:'{name}的幽灵猫守住了',
+    to:'给 {name}', sending:'正在通知好友…', sent:'已通知好友', local:'会通知好友（单机版不会真的发送）',
+    nWin:'你的幽灵猫被打爆了，{a} 比 {b}。要回来报仇吗？', nTie:'有人跟你的幽灵猫打成平手（{a} 比 {b}），快去分个高下。',
+    nLose:'你的幽灵猫击退了一位挑战者，{b} 比 {a}。对方应该还会再来哦。',
+    saved:'这局的每一步已存成「上一局的你」，下次可以挑战自己。',
+    share:'分享战报', shared:'已分享', copied:'已复制战报', again:'再战一次', back:'换一只幽灵猫',
+    sSelf:'凑十幽灵猫：我 {a} 分，上一局的我 {b} 分。', sWin:'凑十幽灵猫：我 {a} 比 {b} 打爆了 {name} 的幽灵猫，你来试试？',
+    sTie:'凑十幽灵猫：我 {a} 比 {b} 逼平了 {name} 的幽灵猫，你来试试？', sLose:'凑十幽灵猫：我 {a} 比 {b} 输给了 {name} 的幽灵猫，你来试试？',
+    miniLabel:'幽灵猫的盘面', waking:'叫醒中…'
+  },
+  en:{
+    roundNo:'Round {n}', reroll:'Draw another', ruleTarget:'Make {t}', ruleTime:'{s} seconds', ruleSmall:'Only 1 to 5', ruleBonus:'Big boxes score double', rulePairs:'Pairs only', hintT:'Box cats that add up to {t} to clear them.', hintPairs:'This round, a box must hold exactly two cats.', hintBonus:'Boxes of 4 or more cats score double.',
+    htmlLang:'en', title:'Ghost Cat Tens', titleHtml:'Ghost Cat<br>Tens',
+    intro:'Draw a box around cats that add up to exactly 10 and they hop away. Your friend is offline? Play their ghost cat instead.',
+    pick:'Pick a ghost cat to play',
+    note1:'A ghost cat plays like your friend: same speed, same habits, on the same board as you, at the same time. When the round ends, your friend hears about it.',
+    note2:'Past you replays every move from your last round.',
+    you:'You', ghostOf:'{name} (ghost cat)', best:'Your best against them: {n}',
+    hint:'Drag a box around cats. If the numbers add up to 10 they clear. One point per cat.', stuck:'No more tens on your board. Round over early.',
+    selfName:'Past you', selfTag:'Replay', selfDesc:'You scored {n} last time. This replays every move you made.',
+    tie:'A draw. One more round to settle it', win:'You beat {name}\'s ghost cat', lose:'{name}\'s ghost cat held on',
+    to:'To {name}', sending:'Telling your friend…', sent:'Your friend has been told', local:'Your friend will be told (not sent in this offline build)',
+    nWin:'Your ghost cat just lost {a} to {b}. Fancy a rematch?', nTie:'Someone drew with your ghost cat ({a} to {b}). Go and settle it.',
+    nLose:'Your ghost cat saw off a challenger, {b} to {a}. They will probably be back.',
+    saved:'Every move from this round is saved as Past you, so you can race yourself next time.',
+    share:'Share result', shared:'Shared', copied:'Copied', again:'Play again', back:'Pick another ghost cat',
+    sSelf:'Ghost Cat Tens: I scored {a}, past me scored {b}.', sWin:'Ghost Cat Tens: I beat {name}\'s ghost cat {a} to {b}. Your turn?',
+    sTie:'Ghost Cat Tens: I drew with {name}\'s ghost cat, {a} to {b}. Your turn?', sLose:'Ghost Cat Tens: {name}\'s ghost cat beat me {b} to {a}. Your turn?',
+    miniLabel:'Ghost cat board', waking:'Waking…'
+  }
+};
+function pickLang(){
+  const saved=store('ghost10.lang');if(saved&&STR[saved])return saved;
+  for(const l of (navigator.languages||[navigator.language||'en'])){
+    const x=String(l).toLowerCase();
+    if(/^zh-(tw|hk|mo)|^zh-hant/.test(x))return'hant';
+    if(/^zh/.test(x))return'hans';
+    if(/^en/.test(x))return'en';
+  }
+  return'en';
+}
+let LANG='hant';
+function t(k,v){let s=(STR[LANG][k]??STR.en[k]??k);if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s;}
+function loc(o){return typeof o==='string'?o:(o[LANG]??o.en);}
+function applyLang(){
+  document.documentElement.lang=t('htmlLang');document.title=t('title');
+  document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(k.endsWith('Html'))el.innerHTML=t(k);else el.textContent=t(k);});
+  document.querySelectorAll('#langs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===LANG)));
+  $('mini').setAttribute('aria-label',t('miniLabel'));$('hint').textContent=t('hint');
+}
+function setLang(l){LANG=l;store('ghost10.lang',l);applyLang();renderRivals();renderDraw();}
+document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+
+/* ---------- drawing ---------- */
+function catSVG(size,ghost,extra=''){
+  return ghost
+    ? `<svg class="cat" width="${size}" height="${size}" viewBox="0 0 100 100"><use href="#cat-tail" stroke="#141414" stroke-width="10"/><use href="#cat-tail" stroke="#fff" stroke-width="4.5"/><use href="#cat-body" fill="#fff" stroke="#141414" stroke-width="3" stroke-linejoin="round"/><use href="#ghost-face"/>${extra}</svg>`
+    : `<svg class="cat" width="${size}" height="${size}" viewBox="0 0 100 100"><g filter="url(#grain)"><use href="#cat-tail" stroke="#141414" stroke-width="7"/><use href="#cat-body" fill="#141414" stroke="#141414"/></g><use href="#cat-face"/>${extra}</svg>`;
+}
+function makeGrain(){
+  try{
+    const c=document.createElement('canvas');c.width=c.height=60;const x=c.getContext('2d');
+    for(let i=0;i<90;i++){x.fillStyle=`rgba(255,255,255,${.12+Math.random()*.35})`;const s=Math.random()<.8?1:1.6;x.fillRect(Math.random()*60,Math.random()*60,s,s);}
+    document.documentElement.style.setProperty('--grain',`url(${c.toDataURL()})`);
+  }catch(e){}
+}
+function sparkle(x,y,n){
+  for(let k=0;k<n;k++){const s=document.createElement('span');s.className='spark';s.textContent='☆';
+    const a=Math.random()*Math.PI*2,d=24+Math.random()*26;
+    s.style.cssText=`left:${x-8}px;top:${y-10}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;
+    document.body.appendChild(s);setTimeout(()=>s.remove(),720);}
+}
+
+/* ---------- rules ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+function makeBoard(seed,max=9){const r=rng(seed);return Array.from({length:N},()=>1+Math.floor(r()*max));}
+function rectInfo(b,m){let s=0,n=0;for(let r=m.r1;r<=m.r2;r++)for(let c=m.c1;c<=m.c2;c++){const v=b[r*COLS+c];s+=v;if(v)n++;}return{s,n};}
+function allMoves(b,T=10,pairs=false){
+  const W=COLS+1,S=new Int32Array((ROWS+1)*W),C=new Int32Array((ROWS+1)*W);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const v=b[r*COLS+c],i=(r+1)*W+c+1;S[i]=v+S[i-1]+S[i-W]-S[i-W-1];C[i]=(v?1:0)+C[i-1]+C[i-W]-C[i-W-1];}
+  const q=(A,r1,c1,r2,c2)=>A[(r2+1)*W+c2+1]-A[r1*W+c2+1]-A[(r2+1)*W+c1]+A[r1*W+c1];
+  const out=[];
+  for(let r1=0;r1<ROWS;r1++)for(let r2=r1;r2<ROWS;r2++)for(let c1=0;c1<COLS;c1++)for(let c2=c1;c2<COLS;c2++){
+    const s=q(S,r1,c1,r2,c2);if(s>T)break;
+    if(s===T){const n=q(C,r1,c1,r2,c2);if(!pairs||n===2)out.push({r1,c1,r2,c2,n,area:(r2-r1+1)*(c2-c1+1)});}
+  }
+  return out;
+}
+/* ---------- 1000 round variants: board × rules, same number = same round for everyone ---------- */
+function variant(i){
+  i=((i%VARIANTS)+VARIANTS)%VARIANTS;
+  const r=rng(i*7919+20261102);
+  const target=r()<.72?10:15;
+  const small=r()<.22;                    // numbers 1 to 5 only: more cats per box
+  const time=[90,90,90,60,60,45][Math.floor(r()*6)];
+  const bonus=r()<.3;                     // boxes of 4+ cats score double
+  const pairs=!small&&target===10&&!bonus&&r()<.18; // only boxes of exactly two cats
+  const max=small?5:9;
+  let seed=Math.floor(r()*2147483647);
+  for(let k=0;k<50&&allMoves(makeBoard(seed,max),target,pairs).length<12;k++)seed++;
+  return{i,seed,target,max,time,bonus,pairs};
+}
+function pts(n){return G.V.bonus&&n>=4?n*2:n;}
+function ruleChips(V){
+  const c=[t('ruleTarget',{t:V.target}),t('ruleTime',{s:V.time})];
+  if(V.max===5)c.push(t('ruleSmall'));if(V.bonus)c.push(t('ruleBonus'));if(V.pairs)c.push(t('rulePairs'));
+  return c;
+}
+function roundLabel(V){return t('roundNo',{n:String(V.i+1).padStart(4,'0')});}
+let CUR=null;
+function drawVariant(i){CUR=variant(i??Math.floor(Math.random()*VARIANTS));renderDraw();}
+function renderDraw(){
+  if(!CUR)return;const d=$('draw');
+  d.innerHTML='<div class="draw-head"><b></b><button type="button" id="reroll"></button></div><div class="chips"></div>';
+  d.querySelector('b').textContent=roundLabel(CUR);
+  const btn=d.querySelector('#reroll');btn.textContent=t('reroll');btn.onclick=()=>drawVariant();
+  const ch=d.querySelector('.chips');for(const x of ruleChips(CUR)){const s=document.createElement('span');s.className='chip';s.textContent=x;ch.appendChild(s);}
+}
+
+function clearRect(b,m){const idx=[];for(let r=m.r1;r<=m.r2;r++)for(let c=m.c1;c<=m.c2;c++){const i=r*COLS+c;if(b[i]){idx.push(i);b[i]=0;}}return idx;}
+
+/* ---------- ghosts (built-in lines are the fallback when no agent answers) ---------- */
+const GHOSTS=[
+  {id:'kai',name:{hant:'阿凱',hans:'阿凯',en:'Kai'},tag:{hant:'速攻型',hans:'速攻型',en:'Speedy'},
+   desc:{hant:'出手快，專挑兩三隻的小組合，嘴很賤。',hans:'出手快，专挑两三只的小组合，嘴很贱。',en:'Quick, goes for small pairs and triples, talks a lot of rubbish.'},
+   persona:'cocky, teasing trash talker who plays fast',seed:20261102,pace:[2.0,3.3],pick:'small',
+   lines:{
+    hant:{start:['又來送分？這盤我上週打過了啦','聽說你很會湊十，我看看'],big:['一次 {n} 隻，學著點','這種組合你看不到吧'],youLead:['欸等等，你開掛？','運氣而已，別得意'],ghostLead:['超車，喵掰','追上來啦，你在發呆嗎'],last:['最後十秒，爪子不要抖喔','剩十秒，認輸還來得及'],ghostWin:['就這？下次帶朋友一起來','我幽靈都比你強，懂？'],ghostLose:['這不算，我本人不在！','可惡，我本人會回來報仇的'],stuck:['我這邊沒得消了，算你走運']},
+    hans:{start:['又来送分？这盘我上周打过了啦','听说你很会凑十，我看看'],big:['一次 {n} 只，学着点','这种组合你看不到吧'],youLead:['诶等等，你开挂？','运气而已，别得意'],ghostLead:['超车，喵拜','追上来啦，你在发呆吗'],last:['最后十秒，爪子别抖哦','剩十秒，认输还来得及'],ghostWin:['就这？下次带朋友一起来','我幽灵都比你强，懂？'],ghostLose:['这不算，我本人不在！','可恶，我本人会回来报仇的'],stuck:['我这边没得消了，算你走运']},
+    en:{start:['Back for another beating? I have played this board before','Heard you are good at tens. Show me'],big:['{n} in one go. Take notes','Bet you never saw that one'],youLead:['Hang on, are you cheating?','Pure luck. Do not get comfy'],ghostLead:['Overtaken. Bye bye','Caught up. Were you napping?'],last:['Ten seconds left. Steady paws','Ten seconds. You can still give up'],ghostWin:['Is that it? Bring a friend next time','Even my ghost is better than you'],ghostLose:['Does not count, the real me was not here','Fine. The real me will come for revenge'],stuck:['Nothing left on my side. Lucky you']}}},
+  {id:'yun',name:{hant:'小芸',hans:'小芸',en:'Yun'},tag:{hant:'穩健型',hans:'稳健型',en:'Steady'},
+   desc:{hant:'不急，專找一次能消很多隻的大框框。',hans:'不急，专找一次能消很多只的大框框。',en:'Takes her time and hunts for big boxes that clear lots of cats at once.'},
+   persona:'calm, kind and encouraging, plays slowly but goes for big combos',seed:777,pace:[2.8,4.4],pick:'big',
+   lines:{
+    hant:{start:['慢慢來，這盤有很多大組合喔','加油，我不會手下留情的'],big:['找到一個 {n} 隻的，開心','大框框最舒服了'],youLead:['你好快！','嗯，我得認真了'],ghostLead:['我超前囉，不要急','穩穩的就會贏'],last:['最後十秒了！','撐住撐住'],ghostWin:['好險贏了，再來一盤？','下次你一定可以的'],ghostLose:['你好強，我要跟本人說','輸了，不過打得很開心'],stuck:['我找不到組合了，換你表演']},
+    hans:{start:['慢慢来，这盘有很多大组合哦','加油，我不会手下留情的'],big:['找到一个 {n} 只的，开心','大框框最舒服了'],youLead:['你好快！','嗯，我得认真了'],ghostLead:['我超前啦，别急','稳稳的就会赢'],last:['最后十秒了！','撑住撑住'],ghostWin:['好险赢了，再来一盘？','下次你一定可以的'],ghostLose:['你好强，我要跟本人说','输了，不过打得很开心'],stuck:['我找不到组合了，换你表演']},
+    en:{start:['No rush, this board has lots of big combos','Good luck. I will not go easy on you'],big:['Found a {n} cat box, so happy','Big boxes are the best'],youLead:['You are fast!','Right, time to concentrate'],ghostLead:['I am ahead now, stay calm','Slow and steady wins'],last:['Ten seconds left!','Hold on, hold on'],ghostWin:['Phew, I won. Another round?','You will get me next time'],ghostLose:['You are good. I will tell the real me','I lost, but that was fun'],stuck:['I cannot find any more. Your show now']}}}
+];
+const SELF_LINES={
+  hant:{start:['我是上一局的你，超越我吧'],big:['上一局的你在這裡消了 {n} 隻'],youLead:['你比上一局快了'],ghostLead:['上一局的你比較快喔'],last:['最後十秒，上一局你在這裡衝刺'],ghostWin:['你沒有比上一局進步'],ghostLose:['恭喜，你超越了自己'],stuck:['上一局的你打到這裡就沒步了']},
+  hans:{start:['我是上一局的你，超越我吧'],big:['上一局的你在这里消了 {n} 只'],youLead:['你比上一局快了'],ghostLead:['上一局的你比较快哦'],last:['最后十秒，上一局你在这里冲刺'],ghostWin:['你没有比上一局进步'],ghostLose:['恭喜，你超越了自己'],stuck:['上一局的你打到这里就没步了']},
+  en:{start:['I am past you. Beat me'],big:['Past you cleared {n} here'],youLead:['You are ahead of last time'],ghostLead:['Past you was quicker here'],last:['Ten seconds. Last time you sprinted here'],ghostWin:['No better than last time'],ghostLose:['Well done, you beat yourself'],stuck:['Past you ran out of moves here']}
+};
+
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+function selfGhost(){const s=store('ghost10.self');return s&&s.moves&&Number.isInteger(s.v)?{id:'self',self:true,score:s.score,v:s.v,replay:s.moves,lines:SELF_LINES}:null;}
+function gName(g){return g.self?t('selfName'):loc(g.name);}
+
+/* ================================================================
+   Platform：跟外部系統的串接點都在這裡（Narra Messenger、Manyfold agent）。
+   ================================================================ */
+const API=(()=>{try{return new URL('api/',location.href).href;}catch(e){return null;}})();
+async function apiPost(path,body,ms){
+  if(!API||!/^https?:/.test(API))return null;
+  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),ms);
+  try{const r=await fetch(API+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:ctl.signal});
+    if(!r.ok)return null;return await r.json();}catch(e){return null;}finally{clearTimeout(tm);}
+}
+const Platform={
+  async getFriendGhosts(){return GHOSTS;},
+  // 幽靈台詞：有後端時，開局前請 Manyfold agent 一次生成整局台詞；沒有或失敗就用內建台詞
+  _cache:{},
+  // 同一隻幽靈、同一種語言只問一次：開始畫面就先預抓，按下去時通常已經好了
+  getLines(g){
+    const k=g.id+'|'+LANG;
+    if(!this._cache[k])this._cache[k]=this._fetchLines(g).then(r=>{if(!r._agent)delete this._cache[k];return r;});
+    return this._cache[k];
+  },
+  async _fetchLines(g){
+    const fallback=g.lines[LANG]||g.lines.en;
+    if(g.self)return fallback;
+    const res=await apiPost('lines',{ghostId:g.id,name:loc(g.name),persona:g.persona,lang:LANG,keys:Object.keys(fallback)},8000);
+    if(!res||!res.lines)return fallback;
+    const merged={...fallback};
+    for(const k in fallback){const v=res.lines[k];if(Array.isArray(v)&&v.length&&v.every(x=>typeof x==='string'&&x.length<=80))merged[k]=v;}
+    merged._agent=true;return merged;
+  },
+  async shareResult(text){
+    try{if(navigator.share){await navigator.share({text});return'shared';}}catch(e){return'cancelled';}
+    try{await navigator.clipboard.writeText(text);return'copied';}catch(e){return'failed';}
+  },
+  async notifyFriend(g,text){return false;}, // Narra 推播或私訊 API 接這裡
+  async saveRun(run){store('ghost10.self',run);}
+};
+
+async function renderRivals(){
+  const list=$('rivals');list.innerHTML='';
+  const all=[...(await Platform.getFriendGhosts())];const me=selfGhost();if(me)all.push(me);
+  for(const g of all){
+    const best=store('ghost10.best.'+g.id);
+    const b=document.createElement('button');b.type='button';b.className='rival';
+    const desc=g.self?t('selfDesc',{n:g.score})+' '+roundLabel(variant(g.v)):loc(g.desc),tag=g.self?t('selfTag'):loc(g.tag);
+    b.innerHTML=`${catSVG(56,true)}<div><b></b><small></small></div><span class="tag"></span>`;
+    b.querySelector('b').textContent=gName(g);
+    b.querySelector('small').textContent=desc+(best!=null?'\n'+t('best',{n:best}):'');b.querySelector('small').style.whiteSpace='pre-line';
+    b.querySelector('.tag').textContent=tag;
+    b.onclick=()=>{b.querySelector('.tag').textContent=t('waking');startGame(g);};list.appendChild(b);
+    if(!g.self)Platform.getLines(g);
+  }
+}
+
+/* ---------- game ---------- */
+let G=null,cells=[],minis=[];
+function buildGrids(){
+  const bd=$('board'),mi=$('mini');bd.innerHTML='';mi.innerHTML='';cells=[];minis=[];
+  for(let i=0;i<N;i++){const d=document.createElement('div');d.className='cell';bd.appendChild(d);cells.push(d);
+    const m=document.createElement('i');mi.appendChild(m);minis.push(m);}
+  const box=document.createElement('div');box.className='selbox';box.hidden=true;box.innerHTML='<span class="sum"></span>';bd.appendChild(box);
+}
+function paint(){for(let i=0;i<N;i++){const v=G.you[i];cells[i].textContent=v||'';cells[i].classList.toggle('e',!v);minis[i].classList.toggle('e',!G.gh[i]);}}
+function say(key,force,vars){
+  const now=performance.now();if(!force&&now-G.lastSay<3500)return;
+  const pool=G.lines[key];if(!pool||!pool.length)return;
+  let s=pool[Math.floor(Math.random()*pool.length)];if(vars)for(const k in vars)s=s.split('{'+k+'}').join(vars[k]);
+  G.lastSay=now;G.lastLine=s;const p=$('bubbleText');p.textContent=s;p.classList.remove('pop');void p.offsetWidth;p.classList.add('pop');
+}
+let starting=false;
+async function startGame(ghost){
+  if(starting)return;starting=true;
+  document.body.style.cursor='progress';
+  const lines=await Platform.getLines(ghost);
+  document.body.style.cursor='';starting=false;
+  buildGrids();
+  const V=ghost.self?variant(ghost.v):CUR;
+  G={ghost,lines,V,seed:V.seed,you:makeBoard(V.seed,V.max),gh:makeBoard(V.seed,V.max),sYou:0,sGh:0,t0:performance.now(),moves:[],
+     leader:0,lastSay:0,saidLast:false,over:false,ghostTimer:null,ghostStuck:false,replayIdx:0,lastLine:''};
+  $('ghName').textContent=gName(ghost);$('bubbleWho').textContent=t('ghostOf',{name:gName(ghost)});
+  $('sYou').textContent=0;$('sGhost').textContent=0;$('hint').textContent=ruleHint(V);
+  show('game');paint();say('start',true);scheduleGhost();
+  G.tick=setInterval(tick,200);tick();
+}
+function ruleHint(V){let h=t('hintT',{t:V.target});if(V.pairs)h+=' '+t('hintPairs');if(V.bonus)h+=' '+t('hintBonus');return h;}
+function elapsed(){return(performance.now()-G.t0)/1000;}
+function tick(){
+  if(G.over)return;
+  const left=Math.max(0,G.V.time-elapsed()),pct=left/G.V.time*100;
+  $('timer').textContent=Math.ceil(left);$('timer').classList.toggle('low',left<=10);
+  $('fill').style.width=pct+'%';$('runner').style.left=pct+'%';
+  if(left<=10&&!G.saidLast){G.saidLast=true;say('last',true);}
+  if(G.ghost.replay)replayStep();
+  if(left<=0)endGame();
+}
+function scheduleGhost(){if(G.ghost.replay)return;const[a,b]=G.ghost.pace;G.ghostTimer=setTimeout(ghostMove,(a+Math.random()*(b-a))*1000);}
+function ghostMove(){
+  if(G.over)return;const ms=allMoves(G.gh,G.V.target,G.V.pairs);
+  if(!ms.length){if(!G.ghostStuck){G.ghostStuck=true;say('stuck',true);}return;}
+  let pick;
+  if(G.ghost.pick==='small'){ms.sort((x,y)=>x.area-y.area||x.n-y.n);pick=ms[Math.floor(Math.random()*Math.min(6,ms.length))];}
+  else{ms.sort((x,y)=>y.n-x.n||x.area-y.area);pick=ms[Math.floor(Math.random()*Math.min(3,ms.length))];}
+  applyGhost(pick);scheduleGhost();
+}
+function replayStep(){const tt=elapsed(),mv=G.ghost.replay;while(G.replayIdx<mv.length&&mv[G.replayIdx].t<=tt){applyGhost(mv[G.replayIdx]);G.replayIdx++;}}
+function applyGhost(m){
+  const idx=clearRect(G.gh,m);if(!idx.length)return;
+  G.sGh+=pts(idx.length);$('sGhost').textContent=G.sGh;
+  for(const i of idx){minis[i].classList.add('flash');setTimeout(()=>{minis[i].classList.remove('flash');minis[i].classList.add('e');},350);}
+  if(idx.length>=4)say('big',false,{n:idx.length});
+  checkLead();
+}
+function checkLead(){const l=Math.sign(G.sYou-G.sGh);if(l!==0&&l!==G.leader){G.leader=l;say(l>0?'youLead':'ghostLead');}}
+
+/* ---------- input ---------- */
+let drag=null;const board=()=>$('board');
+function cellAt(x,y){
+  const r0=cells[0].getBoundingClientRect(),r1=cells[N-1].getBoundingClientRect();
+  const cw=(r1.right-r0.left)/COLS,ch=(r1.bottom-r0.top)/ROWS;
+  return{r:Math.min(ROWS-1,Math.max(0,Math.floor((y-r0.top)/ch))),c:Math.min(COLS-1,Math.max(0,Math.floor((x-r0.left)/cw)))};
+}
+function norm(a,b){return{r1:Math.min(a.r,b.r),c1:Math.min(a.c,b.c),r2:Math.max(a.r,b.r),c2:Math.max(a.c,b.c)};}
+function drawSel(){
+  const box=board().querySelector('.selbox');
+  if(!drag){box.hidden=true;cells.forEach(c=>c.classList.remove('in'));return;}
+  const m=norm(drag.a,drag.b),bd=board().getBoundingClientRect();
+  const tl=cells[m.r1*COLS+m.c1].getBoundingClientRect(),br=cells[m.r2*COLS+m.c2].getBoundingClientRect();
+  Object.assign(box.style,{left:(tl.left-bd.left-4)+'px',top:(tl.top-bd.top-7)+'px',width:(br.right-tl.left+8)+'px',height:(br.bottom-tl.top+11)+'px'});
+  const{s,n}=rectInfo(G.you,m),ok=s===G.V.target&&(!G.V.pairs||n===2);box.hidden=false;box.classList.toggle('ok',ok);box.querySelector('.sum').textContent=ok?'★':s;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)cells[r*COLS+c].classList.toggle('in',r>=m.r1&&r<=m.r2&&c>=m.c1&&c<=m.c2&&!!G.you[r*COLS+c]);
+}
+document.addEventListener('pointerdown',e=>{
+  if(!G||G.over||!board().contains(e.target))return;
+  e.preventDefault();const p=cellAt(e.clientX,e.clientY);drag={a:p,b:p,id:e.pointerId};
+  try{board().setPointerCapture(e.pointerId);}catch(_){}drawSel();
+});
+document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;drag.b=cellAt(e.clientX,e.clientY);drawSel();});
+function finish(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  const m=norm(drag.a,drag.b);drag=null;drawSel();if(G.over)return;
+  {const ri=rectInfo(G.you,m);if(ri.s!==G.V.target||(G.V.pairs&&ri.n!==2))return;}
+  const rects=[];for(let r=m.r1;r<=m.r2;r++)for(let c=m.c1;c<=m.c2;c++){const i=r*COLS+c;if(G.you[i])rects.push([i,cells[i].getBoundingClientRect(),G.you[i]]);}
+  const idx=clearRect(G.you,m);G.moves.push({t:+elapsed().toFixed(2),...m});
+  G.sYou+=pts(idx.length);$('sYou').textContent=G.sYou;paint();
+  rects.forEach(([i,rc,v],k)=>{
+    const f=document.createElement('div');f.className='cell fly';f.textContent=v;
+    f.style.cssText=`left:${rc.left}px;top:${rc.top}px;width:${rc.width}px;height:${rc.height}px;--dx:${(k%2?1:-1)*(10+Math.random()*16)}px;--r:${(k%2?1:-1)*20}deg;animation-delay:${k*40}ms`;
+    document.body.appendChild(f);setTimeout(()=>f.remove(),700+k*40);
+  });
+  const a=rects[0][1],z=rects[rects.length-1][1];sparkle((a.left+z.right)/2,(a.top+z.bottom)/2,3+Math.min(5,idx.length));
+  checkLead();
+  if(!allMoves(G.you,G.V.target,G.V.pairs).length){$('hint').textContent=t('stuck');setTimeout(endGame,700);}
+}
+document.addEventListener('pointerup',finish);document.addEventListener('pointercancel',finish);
+
+/* ---------- end ---------- */
+function endGame(){
+  if(G.over)return;G.over=true;clearInterval(G.tick);clearTimeout(G.ghostTimer);
+  const g=G.ghost,name=gName(g),win=G.sYou>G.sGh,tie=G.sYou===G.sGh,v={a:G.sYou,b:G.sGh,name};
+  say(win?'ghostLose':'ghostWin',true);
+  Platform.saveRun({v:G.V.i,moves:G.moves,score:G.sYou});
+  const bk='ghost10.best.'+g.id,best=store(bk);if(best==null||G.sYou>best)store(bk,G.sYou);
+  $('resultCat').innerHTML=win
+    ? catSVG(150,false)+'<span class="s" style="left:-6px;top:10px">☆</span><span class="s" style="right:-4px;top:-4px">★</span><span class="s" style="right:-14px;top:60px">☆</span><span class="s" style="left:6px;top:-12px;font-size:15px">★</span>'
+    : catSVG(150,true)+'<span class="s" style="right:-6px;top:0;font-family:var(--f-num);font-size:28px">z z</span>';
+  $('verdict').textContent=tie?t('tie'):win?t('win',v):t('lose',v);
+  $('rYou').textContent=G.sYou;$('rGhost').textContent=G.sGh;$('rGhostName').textContent=name;
+  $('rWho').textContent=t('ghostOf',{name});$('rLine').textContent=G.lastLine;
+  G.share=(g.self?t('sSelf',v):t(win?'sWin':tie?'sTie':'sLose',v))+' '+roundLabel(G.V)+' '+location.href.split('#')[0]+'#v'+(G.V.i+1);
+  if(g.self){$('notice').hidden=true;}
+  else{
+    $('notice').hidden=false;$('noticeTo').textContent=t('to',{name});
+    $('noticeText').textContent=t(win?'nWin':tie?'nTie':'nLose',v);
+    $('noticeLbl').textContent=t('sending');
+    Platform.notifyFriend(g,$('noticeText').textContent).then(ok=>{$('noticeLbl').textContent=ok?t('sent'):t('local');});
+  }
+  setTimeout(()=>show('result'),900);
+}
+function show(id){for(const s of['start','game','result'])$(s).hidden=s!==id;$('langs').hidden=id!=='start';window.scrollTo(0,0);}
+$('share').onclick=async()=>{const r=await Platform.shareResult(G.share);$('share').textContent=r==='copied'?t('copied'):r==='shared'?t('shared'):t('share');setTimeout(()=>$('share').textContent=t('share'),2000);};
+$('again').onclick=()=>{const g=G.ghost.self?(selfGhost()||G.ghost):G.ghost;startGame(g);};
+$('back').onclick=()=>{renderRivals();show('start');};
+
+LANG=pickLang();
+makeGrain();
+$('heroCat').innerHTML=catSVG(112,false)+'<span class="s" style="left:-14px;top:8px">☆</span><span class="s" style="right:0;top:-10px">★</span>';
+$('youIcon').innerHTML=catSVG(30,false);$('ghIcon').innerHTML=catSVG(30,true);
+$('runner').innerHTML=catSVG(22,false);
+function fromHash(){const m=/^#v(\d{1,4})$/.exec(location.hash);drawVariant(m?Number(m[1])-1:undefined);}
+fromHash();
+addEventListener('hashchange',()=>{if(G&&!G.over){G.over=true;clearInterval(G.tick);clearTimeout(G.ghostTimer);}fromHash();renderRivals();show('start');});
+applyLang();renderRivals();
+</script>
+</body>
+</html>
