@@ -66,6 +66,13 @@ export function buildPrompt(req: LinesRequest): string {
   ].join('\n');
 }
 
+const FULL_WIDTH: Record<string, string> = { ',': '，', '?': '？', '!': '！', ':': '：', ';': '；' };
+
+/** Chinese lines use full width punctuation; agents often answer with ASCII commas and question marks. */
+export function toFullWidthPunctuation(text: string): string {
+  return text.replace(/\s*([,?!:;])\s*/g, (_m, p: string) => FULL_WIDTH[p]);
+}
+
 /** Pulls the first JSON object out of the agent's reply and keeps only well formed lines. */
 export function parseLines(reply: string, lang: Lang): Partial<Record<LineKey, string[]>> | null {
   const start = reply.indexOf('{');
@@ -86,6 +93,7 @@ export function parseLines(reply: string, lang: Lang): Partial<Record<LineKey, s
     let lines = v
       .filter((x): x is string => typeof x === 'string')
       .map((x) => x.replace(/[\u0000-\u001f]/g, ' ').trim())
+      .map((x) => (lang === 'en' ? x : toFullWidthPunctuation(x)))
       .filter((x) => x.length > 0 && x.length <= limit);
     if (key === 'big') lines = lines.filter((x) => x.includes('{n}'));
     if (lines.length) out[key] = lines.slice(0, 5);
