@@ -22,6 +22,8 @@ agent 只負責寫台詞，不碰遊戲本身：
 
 ## 部署
 
+`main` 已連上 Cloudflare Workers Builds：PR merge 進 `main` 後會自動執行 `npx wrangler deploy`，不用手動部署。下面是第一次設定或手動部署的步驟。
+
 ```bash
 npm install
 npx wrangler secret put MANYFOLD_AGENT_RPC_URL   # agent 的 A2A JSON-RPC 端點
