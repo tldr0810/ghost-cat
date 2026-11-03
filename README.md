@@ -1,54 +1,55 @@
-# 湊十幽靈貓 · Ghost Cat Tens
+# Ghost Cat Tens · 湊十幽靈貓
 
-框住加起來剛好 10 的黑貓就會消掉。好友不在線上時，你挑戰的是他的「幽靈貓」：同一個盤面、同時開打，打完通知好友回來報仇。
+A make-ten puzzle with black cats. Drag a box around cats whose numbers add up to exactly 10 and they hop away. When a friend is offline, you play their "ghost cat" instead: the same board, at the same time. When the round ends, your friend is told so they can come back for a rematch. You can also skip the ghost and play a round on your own.
 
-- 介面：繁體中文、簡體中文、English（依瀏覽器語言自動選擇，開始畫面右上角可切換）
-- 前端：`public/index.html` 單一檔案，手機優先，可以放進 Narra Messenger 的內嵌瀏覽器
-- 後端：Cloudflare Worker，只負責 `/api/*`，幽靈貓的台詞由一個 Manyfold agent 透過 A2A 生成
+- **Languages:** Traditional Chinese, Simplified Chinese and English. The game picks one from the browser language, and you can switch in the top right of the start screen.
+- **Front end:** a single file, `public/index.html`. It is built for phones first and can run inside Narra Messenger's in-app browser.
+- **Back end:** a Cloudflare Worker that only handles `/api/*`. A Manyfold agent writes the ghost cats' lines over A2A.
+- **Rounds:** 1,000 fixed rounds, each a board seed plus a rule set (make 10 or 15; 90, 60 or 45 seconds; numbers 1–5 only; double points for big boxes; pairs only). Share a round with `#v<n>`.
 
-## Agent 的角色
+## What the agent does
 
-agent 只負責寫台詞，不碰遊戲本身：
+The agent only writes the lines. It never touches the game itself.
 
-| 誰決定 | 什麼 |
+| Who decides | What |
 | --- | --- |
-| 程式 | 盤面、幽靈的每一步、分數、勝負 |
-| Manyfold agent | 幽靈貓說的話（開局、超車、大組合、最後十秒、輸贏…），用好友的語氣、玩家選的語言 |
+| The code | The board, every ghost move, the score, who wins |
+| The Manyfold agent | What the ghost cat says (round start, overtaking, big combos, last ten seconds, win or lose), in the friend's voice and the player's language |
 
-- 開始畫面一打開就先幫每隻幽靈預抓台詞，按下去通常馬上開局。
-- 一次 agent 對話就生成整局的台詞；同一隻幽靈、同一種語言在 `LINES_CACHE_SECONDS`（預設 600 秒）內重複使用，不會每局都計費。
-- agent 沒設定、逾時、回覆格式不對，遊戲都會自動改用內建台詞，不會卡住。
-- agent 回的每一句都會檢查長度和格式，畫面上只用純文字顯示。
+- The start screen prefetches lines for every ghost as soon as it opens, so a round usually starts at once.
+- One agent conversation writes the lines for a whole round. The same ghost in the same language reuses them for `LINES_CACHE_SECONDS` (600 seconds by default), so not every round is billed.
+- If the agent is not configured, times out or returns a bad format, the game falls back to built-in lines and keeps going.
+- Every line from the agent is checked for length and format, and is shown as plain text only.
 
-## 部署
+## Deploy
 
-`main` 已連上 Cloudflare Workers Builds：PR merge 進 `main` 後會自動執行 `npx wrangler deploy`，不用手動部署。下面是第一次設定或手動部署的步驟。
+`main` is connected to Cloudflare Workers Builds. When a PR is merged into `main`, Cloudflare runs `npx wrangler deploy` on its own, so there is no manual deploy. The steps below are for the first setup or a manual deploy.
 
 ```bash
 npm install
-npx wrangler secret put MANYFOLD_AGENT_RPC_URL   # agent 的 A2A JSON-RPC 端點
-npx wrangler secret put MANYFOLD_AGENT_TOKEN     # agent 的 A2A bearer token
+npx wrangler secret put MANYFOLD_AGENT_RPC_URL   # the agent's A2A JSON-RPC endpoint
+npx wrangler secret put MANYFOLD_AGENT_TOKEN     # the agent's A2A bearer token
 npm run deploy
 ```
 
-部署後打開 `/api/health`，看到 `{"ok":true,"agent":true}` 就代表 agent 已設定。
+After deploying, open `/api/health`. If it shows `{"ok":true,"agent":true}`, the agent is configured.
 
-agent 的 RPC 端點和 token 從 Manyfold 拿：在該 agent 的設定裡開啟 A2A，並產生一組憑證。不要把它們寫進程式碼或 commit 進 repo。
+Get the agent's RPC endpoint and token from Manyfold: turn on A2A in the agent's settings and create a credential. Never put them in the code or commit them to the repo.
 
-## 本機開發
+## Local development
 
 ```bash
-cp .dev.vars.example .dev.vars   # 填入 agent 的端點和 token
+cp .dev.vars.example .dev.vars   # fill in the agent's endpoint and token
 npm run dev
-npm run check                    # 型別檢查 + 部署 dry run
+npm run check                    # type check + deploy dry run
 ```
 
-## 還沒接的部分
+## Not connected yet
 
-`public/index.html` 裡的 `Platform` 物件是所有外部串接點：
+The `Platform` object in `public/index.html` holds every connection to the outside world:
 
-- `getFriendGhosts`：目前是兩隻內建幽靈（阿凱、小芸），正式版應該來自 Narra 的好友名單和他們的對局紀錄
-- `notifyFriend`：通知好友「你的幽靈貓被打爆了」，要接 Narra 的私訊或推播
-- `shareResult`：目前用系統分享或複製文字，可以改成直接發到 Narra 聊天室
+- `getFriendGhosts`: two built-in ghosts for now (Kai and Yun). The real version should come from the player's Narra friends and their past games.
+- `notifyFriend`: tells a friend "your ghost cat just lost". It needs Narra direct messages or push notifications.
+- `shareResult`: uses the system share sheet or copies text for now. It could post straight into a Narra chat instead.
 
-`src/a2a.ts` 取自 [manyfold-open/manyfold-fortune-stick](https://github.com/manyfold-open/manyfold-fortune-stick)（MIT License）。
+`src/a2a.ts` comes from [manyfold-open/manyfold-fortune-stick](https://github.com/manyfold-open/manyfold-fortune-stick) (MIT License).
