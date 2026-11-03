@@ -219,6 +219,19 @@ button:active{transform:translateY(1px) scale(.98);box-shadow:none}
 @keyframes toast{0%{transform:translate(-50%,24px);opacity:0}12%,85%{transform:translate(-50%,0);opacity:1}100%{transform:translate(-50%,8px);opacity:0}}
 .rival{animation:rise .45s var(--ease) backwards;animation-delay:calc(var(--i,0) * 70ms + 120ms)}
 @media (prefers-reduced-motion: reduce){.enter>*,.board.drop .cell{animation:none!important}}
+/* solo: play the round on your own, no ghost */
+.solo{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;text-align:left;padding:14px 16px;background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.solo b{display:block;font-size:20px;font-weight:900;line-height:1.25}
+.solo small{display:block;font-size:13px;opacity:.75;font-weight:500;line-height:1.4}
+.solo .go{font-family:var(--f-num);font-size:30px;line-height:1;transition:transform .25s var(--spring)}
+@media (hover:hover){.solo:hover .go{transform:translateX(5px)}}
+.solo svg.cat .eyes circle[fill="#141414"]{fill:#141414}
+.soloicon{width:48px;height:48px;border-radius:50%;background:var(--paper);display:grid;place-items:center}
+#game.solo-mode .rivalrow{display:none}
+#game.solo-mode .side.right strong{color:var(--ink);-webkit-text-stroke:0}
+#result.solo-mode .bubble,#result.solo-mode #notice{display:none}
+#result.solo-mode .vs .gh{color:var(--ink-2);-webkit-text-stroke:0}
+.star-ic{display:grid;place-items:center;width:30px;height:30px;font-size:22px;line-height:1}
 </style>
 </head>
 <body>
@@ -269,7 +282,8 @@ button:active{transform:translateY(1px) scale(.98);box-shadow:none}
       <div class="hero-cat" id="heroCat"></div>
     </div>
     <div class="draw" id="draw"></div>
-    <div class="label" data-t="pick"></div>
+    <button class="solo" id="soloBtn" type="button"><span class="soloicon" id="soloIcon"></span><span><b data-t="soloBtn"></b><small data-t="soloSub"></small></span><span class="go" aria-hidden="true">→</span></button>
+    <div class="label" data-t="pickOr"></div>
     <div id="rivals" class="rivals"></div>
     <div class="note">
       <p data-t="note1"></p>
@@ -355,7 +369,7 @@ const STR={
     share:'分享戰報', shared:'已分享', copied:'已複製戰報', again:'再戰一次', back:'換一隻幽靈貓',
     sSelf:'湊十幽靈貓：我 {a} 分，上一局的我 {b} 分。', sWin:'湊十幽靈貓：我 {a} 比 {b} 打爆了 {name} 的幽靈貓，你來試試？',
     sTie:'湊十幽靈貓：我 {a} 比 {b} 逼平了 {name} 的幽靈貓，你來試試？', sLose:'湊十幽靈貓：我 {a} 比 {b} 輸給了 {name} 的幽靈貓，你來試試？',
-    miniLabel:'幽靈貓的盤面', waking:'叫醒中', go:'開始！', timeUp:'時間到！', noMoves:'沒步了！', newBest:'新紀錄！', shareFail:'分享失敗，再試一次', pause:'暫停', paused:'暫停中', pausedNote:'幽靈貓也停下來等你了。', resume:'繼續', restart:'重新開始', quit:'回主畫面'
+    soloBtn:'直接開始', soloSub:'不用對手，挑戰這一局的最高分', pickOr:'或挑戰一隻幽靈貓', bestLabel:'最高分', soloName:'單人', soloScore:'拿到 {a} 分', soloBest:'新紀錄，{a} 分！', soloFirst:'第一次挑戰這局，{a} 分', sSolo:'湊十幽靈貓：我拿了 {a} 分，你來試試？', miniLabel:'幽靈貓的盤面', waking:'叫醒中', go:'開始！', timeUp:'時間到！', noMoves:'沒步了！', newBest:'新紀錄！', shareFail:'分享失敗，再試一次', pause:'暫停', paused:'暫停中', pausedNote:'幽靈貓也停下來等你了。', resume:'繼續', restart:'重新開始', quit:'回主畫面'
   },
   hans:{
     roundNo:'第 {n} 局', reroll:'换一局', ruleTarget:'凑 {t}', ruleTime:'{s} 秒', ruleSmall:'只有 1 到 5', ruleBonus:'大框加倍', rulePairs:'只能两只一组', hintT:'拖动框住猫咪，数字加起来 {t} 就消除。', hintPairs:'这局一次只能框两只。', hintBonus:'一次框 4 只以上分数加倍。',
@@ -375,7 +389,7 @@ const STR={
     share:'分享战报', shared:'已分享', copied:'已复制战报', again:'再战一次', back:'换一只幽灵猫',
     sSelf:'凑十幽灵猫：我 {a} 分，上一局的我 {b} 分。', sWin:'凑十幽灵猫：我 {a} 比 {b} 打爆了 {name} 的幽灵猫，你来试试？',
     sTie:'凑十幽灵猫：我 {a} 比 {b} 逼平了 {name} 的幽灵猫，你来试试？', sLose:'凑十幽灵猫：我 {a} 比 {b} 输给了 {name} 的幽灵猫，你来试试？',
-    miniLabel:'幽灵猫的盘面', waking:'叫醒中', go:'开始！', timeUp:'时间到！', noMoves:'没步了！', newBest:'新纪录！', shareFail:'分享失败，再试一次', pause:'暂停', paused:'暂停中', pausedNote:'幽灵猫也停下来等你了。', resume:'继续', restart:'重新开始', quit:'回主画面'
+    soloBtn:'直接开始', soloSub:'不用对手，挑战这一局的最高分', pickOr:'或挑战一只幽灵猫', bestLabel:'最高分', soloName:'单人', soloScore:'拿到 {a} 分', soloBest:'新纪录，{a} 分！', soloFirst:'第一次挑战这局，{a} 分', sSolo:'凑十幽灵猫：我拿了 {a} 分，你来试试？', miniLabel:'幽灵猫的盘面', waking:'叫醒中', go:'开始！', timeUp:'时间到！', noMoves:'没步了！', newBest:'新纪录！', shareFail:'分享失败，再试一次', pause:'暂停', paused:'暂停中', pausedNote:'幽灵猫也停下来等你了。', resume:'继续', restart:'重新开始', quit:'回主画面'
   },
   en:{
     roundNo:'Round {n}', reroll:'Draw another', ruleTarget:'Make {t}', ruleTime:'{s} seconds', ruleSmall:'Only 1 to 5', ruleBonus:'Big boxes score double', rulePairs:'Pairs only', hintT:'Box cats that add up to {t} to clear them.', hintPairs:'This round, a box must hold exactly two cats.', hintBonus:'Boxes of 4 or more cats score double.',
@@ -395,7 +409,7 @@ const STR={
     share:'Share result', shared:'Shared', copied:'Copied', again:'Play again', back:'Pick another ghost cat',
     sSelf:'Ghost Cat Tens: I scored {a}, past me scored {b}.', sWin:'Ghost Cat Tens: I beat {name}\'s ghost cat {a} to {b}. Your turn?',
     sTie:'Ghost Cat Tens: I drew with {name}\'s ghost cat, {a} to {b}. Your turn?', sLose:'Ghost Cat Tens: {name}\'s ghost cat beat me {b} to {a}. Your turn?',
-    miniLabel:'Ghost cat board', waking:'Waking', go:'Go!', timeUp:'Time!', noMoves:'No moves!', newBest:'New best!', shareFail:'Could not share. Try again', pause:'Pause', paused:'Paused', pausedNote:'The ghost cat is waiting for you too.', resume:'Resume', restart:'Restart', quit:'Back to home'
+    soloBtn:'Just play', soloSub:'No opponent. Chase your best score on this round', pickOr:'Or challenge a ghost cat', bestLabel:'Best', soloName:'Solo', soloScore:'You scored {a}', soloBest:'New best: {a}!', soloFirst:'First go at this round: {a}', sSolo:'Ghost Cat Tens: I scored {a}. Your turn?', miniLabel:'Ghost cat board', waking:'Waking', go:'Go!', timeUp:'Time!', noMoves:'No moves!', newBest:'New best!', shareFail:'Could not share. Try again', pause:'Pause', paused:'Paused', pausedNote:'The ghost cat is waiting for you too.', resume:'Resume', restart:'Restart', quit:'Back to home'
   }
 };
 function pickLang(){
@@ -513,7 +527,9 @@ const SELF_LINES={
 
 function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
 function selfGhost(){const s=store('ghost10.self');return s&&s.moves&&Number.isInteger(s.v)?{id:'self',self:true,score:s.score,v:s.v,replay:s.moves,lines:SELF_LINES}:null;}
-function gName(g){return g.self?t('selfName'):loc(g.name);}
+const SOLO={id:'solo',solo:true,lines:{hant:{},hans:{},en:{}}};
+function soloBestKey(V){return'ghost10.best.solo.'+V.i;}
+function gName(g){return g.solo?t('soloName'):g.self?t('selfName'):loc(g.name);}
 
 /* ================================================================
    Platform：跟外部系統的串接點都在這裡（Narra Messenger、Manyfold agent）。
@@ -537,7 +553,7 @@ const Platform={
   },
   async _fetchLines(g){
     const fallback=g.lines[LANG]||g.lines.en;
-    if(g.self)return fallback;
+    if(g.self||g.solo)return fallback;
     const res=await apiPost('lines',{ghostId:g.id,name:loc(g.name),persona:g.persona,lang:LANG,keys:Object.keys(fallback)},8000);
     if(!res||!res.lines)return fallback;
     const merged={...fallback};
@@ -595,8 +611,12 @@ async function startGame(ghost){
   G={ghost,lines,V,seed:V.seed,you:makeBoard(V.seed,V.max),gh:makeBoard(V.seed,V.max),sYou:0,sGh:0,t0:performance.now(),moves:[],
      leader:0,lastSay:0,saidLast:false,over:false,ghostTimer:null,ghostStuck:false,replayIdx:0,lastLine:'',
      ready:false,paused:false,pausedAt:0,lastAct:0,nudged:0};
+  $('game').classList.toggle('solo-mode',!!ghost.solo);
   $('ghName').textContent=gName(ghost);$('bubbleWho').textContent=t('ghostOf',{name:gName(ghost)});
+  if(ghost.solo){$('ghName').textContent=t('bestLabel');$('ghIcon').innerHTML='<span class="star-ic">★</span>';}
+  else $('ghIcon').innerHTML=catSVG(30,true);
   $('sYou').textContent=0;$('sGhost').textContent=0;$('hint').textContent=ruleHint(V);
+  if(ghost.solo){const b=store(soloBestKey(V));$('sGhost').textContent=b==null?'–':b;}
   $('timer').textContent=V.time;$('timer').classList.remove('low');$('fill').style.width='100%';$('runner').style.left='100%';
   $('bubbleText').textContent='…';
   show('game');paint();
@@ -663,7 +683,7 @@ function tick(){
   if(G.ghost.replay)replayStep();
   if(left<=0)endGame('time');
 }
-function scheduleGhost(){if(G.ghost.replay||G.over)return;clearTimeout(G.ghostTimer);const[a,b]=G.ghost.pace;G.ghostTimer=setTimeout(ghostMove,(a+Math.random()*(b-a))*1000);}
+function scheduleGhost(){if(G.ghost.replay||G.ghost.solo||G.over)return;clearTimeout(G.ghostTimer);const[a,b]=G.ghost.pace;G.ghostTimer=setTimeout(ghostMove,(a+Math.random()*(b-a))*1000);}
 function ghostMove(){
   if(G.over||G.paused)return;const ms=allMoves(G.gh,G.V.target,G.V.pairs);
   if(!ms.length){if(!G.ghostStuck){G.ghostStuck=true;say('stuck',true);}return;}
@@ -680,7 +700,7 @@ function applyGhost(m){
   if(idx.length>=4)say('big',false,{n:idx.length});
   checkLead();
 }
-function checkLead(){const l=Math.sign(G.sYou-G.sGh);if(l!==0&&l!==G.leader){G.leader=l;say(l>0?'youLead':'ghostLead');}}
+function checkLead(){if(G.ghost.solo)return;const l=Math.sign(G.sYou-G.sGh);if(l!==0&&l!==G.leader){G.leader=l;say(l>0?'youLead':'ghostLead');}}
 
 /* ---------- input ---------- */
 let drag=null;const board=()=>$('board');
@@ -759,7 +779,11 @@ function toast(msg){
 function endGame(reason){
   if(G.over)return;G.over=true;clearInterval(G.tick);clearTimeout(G.ghostTimer);drag=null;drawSel();
   {const fx=$('fx');fx.innerHTML='<div class="stamp"></div>';fx.firstChild.textContent=reason==='stuck'?t('noMoves'):t('timeUp');buzz([20,60,20]);}
-  const g=G.ghost,name=gName(g),win=G.sYou>G.sGh,tie=G.sYou===G.sGh,v={a:G.sYou,b:G.sGh,name};
+  const g=G.ghost;
+  $('result').classList.toggle('solo-mode',!!g.solo);
+  $('back').textContent=g.solo?t('quit'):t('back');
+  if(g.solo){endSolo();return;}
+  const name=gName(g),win=G.sYou>G.sGh,tie=G.sYou===G.sGh,v={a:G.sYou,b:G.sGh,name};
   say(win?'ghostLose':'ghostWin',true);
   Platform.saveRun({v:G.V.i,moves:G.moves,score:G.sYou});
   const bk='ghost10.best.'+g.id,best=store(bk);if(best==null||G.sYou>best)store(bk,G.sYou);
@@ -781,16 +805,30 @@ function endGame(reason){
   const me=G;
   setTimeout(()=>{if(G!==me)return;$('fx').innerHTML='';show('result');countUp($('rYou'),me.sYou);countUp($('rGhost'),me.sGh);},1150);
 }
+function endSolo(){
+  Platform.saveRun({v:G.V.i,moves:G.moves,score:G.sYou});
+  const k=soloBestKey(G.V),best=store(k),nb=best!=null&&G.sYou>best,top=Math.max(best??0,G.sYou);
+  if(best==null||G.sYou>best)store(k,G.sYou);
+  const v={a:G.sYou};
+  $('newBest').hidden=true;
+  $('resultCat').innerHTML=catSVG(150,false)+(nb||best==null?'<span class="s" style="left:-6px;top:10px">☆</span><span class="s" style="right:-4px;top:-4px">★</span><span class="s" style="right:-14px;top:60px">☆</span>':'');
+  $('verdict').textContent=best==null?t('soloFirst',v):nb?t('soloBest',v):t('soloScore',v);
+  $('rGhostName').textContent=t('bestLabel');
+  G.share=t('sSolo',v)+' '+roundLabel(G.V)+' '+location.href.split('#')[0]+'#v'+(G.V.i+1);
+  const me=G;
+  setTimeout(()=>{if(G!==me)return;$('fx').innerHTML='';show('result');countUp($('rYou'),me.sYou);countUp($('rGhost'),top);},1150);
+}
 function show(id){for(const s of['start','game','result'])$(s).hidden=s!==id;
   {const sec=$(id);sec.classList.remove('enter');[...sec.children].forEach((c,k)=>c.style.setProperty('--i',k));void sec.offsetWidth;sec.classList.add('enter');}$('langs').hidden=id!=='start';window.scrollTo(0,0);}
 $('share').onclick=async()=>{const r=await Platform.shareResult(G.share);if(r==='copied')toast(t('copied'));else if(r==='shared')toast(t('shared'));else if(r==='failed')toast(t('shareFail'));};
 $('again').onclick=()=>{const g=G.ghost.self?(selfGhost()||G.ghost):G.ghost;startGame(g);};
 $('back').onclick=()=>{renderRivals();show('start');};
+$('soloBtn').onclick=()=>startGame(SOLO);
 
 LANG=pickLang();
 makeGrain();
 $('heroCat').innerHTML=catSVG(112,false)+'<span class="s" style="left:-14px;top:8px">☆</span><span class="s" style="right:0;top:-10px">★</span>';
-$('youIcon').innerHTML=catSVG(30,false);$('ghIcon').innerHTML=catSVG(30,true);
+$('youIcon').innerHTML=catSVG(30,false);$('ghIcon').innerHTML=catSVG(30,true);$('soloIcon').innerHTML=catSVG(38,false);
 $('runner').innerHTML=catSVG(22,false);
 function fromHash(){const m=/^#v(\d{1,4})$/.exec(location.hash);drawVariant(m?Number(m[1])-1:undefined);}
 fromHash();
