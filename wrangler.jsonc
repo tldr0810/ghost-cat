@@ -17,6 +17,15 @@
     "ENVIRONMENT": "production",
     // Seconds one generated set of ghost lines is reused. Each new set bills one agent turn.
     "LINES_CACHE_SECONDS": "600"
+  },
+  // PR previews built by Cloudflare Workers Builds (`wrangler preview`).
+  // They get no agent secrets, so ghosts fall back to built-in lines.
+  // Keep the strict "production" URL checks in previews too.
+  "previews": {
+    "vars": {
+      "ENVIRONMENT": "production",
+      "LINES_CACHE_SECONDS": "600"
+    }
   }
   // Secrets (never commit them):
   //   npx wrangler secret put MANYFOLD_AGENT_RPC_URL   # the agent's A2A endpoint
