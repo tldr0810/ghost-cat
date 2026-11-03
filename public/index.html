@@ -232,6 +232,24 @@ button:active{transform:translateY(1px) scale(.98);box-shadow:none}
 #result.solo-mode .bubble,#result.solo-mode #notice{display:none}
 #result.solo-mode .vs .gh{color:var(--ink-2);-webkit-text-stroke:0}
 .star-ic{display:grid;place-items:center;width:30px;height:30px;font-size:22px;line-height:1}
+/* board cats: ear shapes, markings and a slight tilt, fixed per round so both players see the same litter */
+.cell{transform:rotate(var(--tilt,0deg))}
+.cell.in{transform:translateY(-3px) scale(1.04) rotate(var(--tilt,0deg))}
+.cell.e{background:transparent!important}
+.cell.k1::before{clip-path:ellipse(42% 48% at 45% 62%)}
+.cell.k1::after{clip-path:ellipse(42% 48% at 55% 62%)}
+.cell.k2::before,.cell.k2::after{top:-5%;height:28%}
+.cell.k2::before{clip-path:polygon(0 100%,30% 10%,100% 70%)}
+.cell.k2::after{clip-path:polygon(0 70%,70% 10%,100% 100%)}
+.cell.k3::before,.cell.k3::after{background:linear-gradient(#a8a8a8 0 42%,transparent 42%),var(--grain,none),var(--ink);background-size:auto,60px 60px,auto}
+.cell.k4::before,.cell.k4::after{top:-27%;height:52%;width:42%}
+.cell.k5::before{clip-path:polygon(4% 100%,18% 0,46% 34%,36% 46%,100% 82%)}
+.cell.k6{background:linear-gradient(90deg,transparent 34%,rgba(201,201,201,.95) 34% 40%,transparent 40% 47%,rgba(201,201,201,.95) 47% 53%,transparent 53% 60%,rgba(201,201,201,.95) 60% 66%,transparent 66%) 50% 0/100% 26% no-repeat,var(--grain,none) 0 0/60px 60px,var(--ink)}
+.cell.k6::before,.cell.k6::after,.cell.k7::before,.cell.k7::after{background:var(--grain,none),var(--ink);background-size:60px 60px,auto}
+.cell.k7{background:radial-gradient(ellipse 14% 12% at 50% 5%,#c9c9c9 92%,transparent 100%) no-repeat,var(--grain,none) 0 0/60px 60px,var(--ink)}
+.cell.k8{border-radius:46% 46% 50% 50%/50% 50% 50% 50%}
+.cell.k9{background:radial-gradient(ellipse 30% 15% at 50% 100%,#c9c9c9 90%,transparent 100%) no-repeat,var(--grain,none) 0 0/60px 60px,var(--ink)}
+.cell.k9::before,.cell.k9::after{background:var(--grain,none),var(--ink);background-size:60px 60px,auto}
 </style>
 </head>
 <body>
@@ -259,6 +277,37 @@ button:active{transform:translateY(1px) scale(.98);box-shadow:none}
       <g stroke="#141414" stroke-width="2.4" stroke-linecap="round" fill="none">
         <path d="M37 45 L46 45"/><path d="M55 45 L64 45"/><path d="M47 53 Q50 56 53 53"/>
         <path d="M30 50 L15 47"/><path d="M30 54 L15 55"/><path d="M71 50 L86 47"/><path d="M71 54 L86 55"/>
+      </g>
+    </symbol>
+    <!-- round-eared body (Yun) -->
+    <symbol id="cat-body-round" viewBox="0 0 100 100">
+      <path d="M31 42 C27 33 25 23 30 18 C35 15 40 23 43 29 C48 27 53 27 58 29 C61 23 66 15 71 18 C76 23 74 33 70 42 C73 50 70 57 63 61 C73 67 78 78 75 93 L27 93 C23 79 28 67 38 61 C31 57 28 50 31 42 Z"/>
+    </symbol>
+    <!-- Kai: one eye open, one winking, smirk, lightning bolt -->
+    <symbol id="face-kai" viewBox="0 0 100 100">
+      <circle cx="42" cy="45" r="3.2" fill="#141414"/>
+      <g stroke="#141414" stroke-width="2.4" stroke-linecap="round" fill="none">
+        <path d="M55 46 Q59.5 41 64 46"/><path d="M36 38 L47 40"/><path d="M45 54 Q51 57 57 51"/>
+        <path d="M30 50 L15 47"/><path d="M30 54 L15 55"/><path d="M71 50 L86 47"/><path d="M71 54 L86 55"/>
+      </g>
+      <path d="M52 66 L45 78 L51 78 L47 89 L58 74 L52 74 L57 66 Z" fill="#141414"/>
+      <path d="M68 16 L71 26 L63 22 Z" fill="#fff" stroke="#141414" stroke-width="2.4" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Yun: happy closed eyes, blush, bow on the ear -->
+    <symbol id="face-yun" viewBox="0 0 100 100">
+      <ellipse cx="35" cy="53" rx="4" ry="2.4" fill="#141414" opacity=".18"/><ellipse cx="66" cy="53" rx="4" ry="2.4" fill="#141414" opacity=".18"/>
+      <g stroke="#141414" stroke-width="2.4" stroke-linecap="round" fill="none">
+        <path d="M37 47 Q41.5 41 46 47"/><path d="M55 47 Q59.5 41 64 47"/><path d="M46 53 Q48.3 56.5 50.5 53 Q52.7 56.5 55 53"/>
+        <path d="M30 50 L15 47"/><path d="M30 54 L15 55"/><path d="M71 50 L86 47"/><path d="M71 54 L86 55"/>
+      </g>
+      <g fill="#141414"><path d="M61 15 L68 21 L60 25 Z"/><path d="M75 15 L68 21 L76 25 Z"/><circle cx="68" cy="21" r="2.6"/></g>
+    </symbol>
+    <!-- Past you: round open eyes and a little rewind clock -->
+    <symbol id="face-self" viewBox="0 0 100 100">
+      <g stroke="#141414" stroke-width="2.4" stroke-linecap="round" fill="none">
+        <circle cx="42" cy="45" r="4"/><circle cx="60" cy="45" r="4"/><path d="M48 54 L54 54"/>
+        <path d="M30 50 L15 47"/><path d="M30 54 L15 55"/><path d="M71 50 L86 47"/><path d="M71 54 L86 55"/>
+        <circle cx="51" cy="77" r="8"/><path d="M51 72 L51 77 L55 79"/>
       </g>
     </symbol>
   </defs>
@@ -435,9 +484,16 @@ function setLang(l){LANG=l;store('ghost10.lang',l);applyLang();renderRivals();re
 document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
 
 /* ---------- drawing ---------- */
-function catSVG(size,ghost,extra=''){
+const LOOKS={
+  kai:{body:'cat-body',face:'face-kai'},
+  yun:{body:'cat-body-round',face:'face-yun'},
+  self:{body:'cat-body',face:'face-self',dash:true}
+};
+function catSVG(size,ghost,extra='',look){
+  const L=LOOKS[look]||{body:'cat-body',face:'ghost-face'};
+  const dash=L.dash?' stroke-dasharray="7 5"':'';
   return ghost
-    ? `<svg class="cat" width="${size}" height="${size}" viewBox="0 0 100 100"><use href="#cat-tail" stroke="#141414" stroke-width="10"/><use href="#cat-tail" stroke="#fff" stroke-width="4.5"/><use href="#cat-body" fill="#fff" stroke="#141414" stroke-width="3" stroke-linejoin="round"/><use href="#ghost-face"/>${extra}</svg>`
+    ? `<svg class="cat" width="${size}" height="${size}" viewBox="0 0 100 100"><use href="#cat-tail" stroke="#141414" stroke-width="10"${dash}/><use href="#cat-tail" stroke="#fff" stroke-width="4.5"/><use href="#${L.body}" fill="#fff" stroke="#141414" stroke-width="3" stroke-linejoin="round"${dash}/><use href="#${L.face}"/>${extra}</svg>`
     : `<svg class="cat" width="${size}" height="${size}" viewBox="0 0 100 100"><g filter="url(#grain)"><use href="#cat-tail" stroke="#141414" stroke-width="7"/><use href="#cat-body" fill="#141414" stroke="#141414"/></g><use href="#cat-face"/>${extra}</svg>`;
 }
 function makeGrain(){
@@ -575,7 +631,7 @@ async function renderRivals(){
     const best=store('ghost10.best.'+g.id);
     const b=document.createElement('button');b.type='button';b.className='rival';
     const desc=g.self?t('selfDesc',{n:g.score})+' '+roundLabel(variant(g.v)):loc(g.desc),tag=g.self?t('selfTag'):loc(g.tag);
-    b.innerHTML=`${catSVG(56,true)}<div><b></b><small></small></div><span class="tag"></span>`;
+    b.innerHTML=`${catSVG(56,true,'',g.id)}<div><b></b><small></small></div><span class="tag"></span>`;
     b.querySelector('b').textContent=gName(g);
     b.querySelector('small').textContent=desc+(best!=null?'\n'+t('best',{n:best}):'');b.querySelector('small').style.whiteSpace='pre-line';
     b.querySelector('.tag').textContent=tag;
@@ -610,11 +666,12 @@ async function startGame(ghost){
   const V=ghost.self?variant(ghost.v):CUR;
   G={ghost,lines,V,seed:V.seed,you:makeBoard(V.seed,V.max),gh:makeBoard(V.seed,V.max),sYou:0,sGh:0,t0:performance.now(),moves:[],
      leader:0,lastSay:0,saidLast:false,over:false,ghostTimer:null,ghostStuck:false,replayIdx:0,lastLine:'',
-     ready:false,paused:false,pausedAt:0,lastAct:0,nudged:0};
+     ready:false,paused:false,pausedAt:0,lastAct:0,nudged:0,kind:[]};
+  dressCats(V.seed);
   $('game').classList.toggle('solo-mode',!!ghost.solo);
   $('ghName').textContent=gName(ghost);$('bubbleWho').textContent=t('ghostOf',{name:gName(ghost)});
   if(ghost.solo){$('ghName').textContent=t('bestLabel');$('ghIcon').innerHTML='<span class="star-ic">★</span>';}
-  else $('ghIcon').innerHTML=catSVG(30,true);
+  else $('ghIcon').innerHTML=catSVG(30,true,'',ghost.id);
   $('sYou').textContent=0;$('sGhost').textContent=0;$('hint').textContent=ruleHint(V);
   if(ghost.solo){const b=store(soloBestKey(V));$('sGhost').textContent=b==null?'–':b;}
   $('timer').textContent=V.time;$('timer').classList.remove('low');$('fill').style.width='100%';$('runner').style.left='100%';
@@ -623,6 +680,15 @@ async function startGame(ghost){
   const bd=$('board');bd.classList.remove('drop');void bd.offsetWidth;bd.classList.add('drop');
   const me=G;
   if(await countdown(3,600)&&G===me&&!G.paused)beginPlay();
+}
+/* Same seed, same litter: each cat gets an ear shape or marking and a slight tilt. */
+function dressCats(seed){
+  const r=rng(seed^0x5bd1e995);
+  cells.forEach((d,i)=>{
+    const x=r(),k=x<.25?'':'k'+(1+Math.floor((x-.25)/.75*9));
+    G.kind[i]=k;if(k)d.classList.add(k);
+    d.style.setProperty('--tilt',(Math.round((r()-.5)*10))+'deg');
+  });
 }
 function beginPlay(){
   G.ready=true;G.t0=performance.now();G.lastAct=0;$('board').classList.remove('drop');
@@ -649,7 +715,7 @@ function pauseGame(){
   if(!G||G.over||G.paused||$('game').hidden)return;
   G.paused=true;G.pausedAt=performance.now();clearTimeout(G.ghostTimer);cdToken++;$('fx').innerHTML='';
   drag=null;drawSel();$('board').classList.add('dim');
-  $('pauseCat').innerHTML=catSVG(84,true,'<text x="78" y="22" font-family="Gaegu,cursive" font-size="20" fill="#141414">z</text><text x="88" y="8" font-family="Gaegu,cursive" font-size="14" fill="#141414">z</text>');
+  $('pauseCat').innerHTML=catSVG(84,true,'<text x="78" y="22" font-family="Gaegu,cursive" font-size="20" fill="#141414">z</text><text x="88" y="8" font-family="Gaegu,cursive" font-size="14" fill="#141414">z</text>',G.ghost.solo?'':G.ghost.id);
   $('pauseMenu').hidden=false;$('resumeBtn').focus();
 }
 async function resumeGame(){
@@ -754,7 +820,7 @@ function finish(e){
   const gain=pts(idx.length);G.sYou+=gain;$('sYou').textContent=G.sYou;paint();G.lastAct=elapsed();
   replay($('sYou'),'bump');buzz(12);
   rects.forEach(([i,rc,v],k)=>{
-    const f=document.createElement('div');f.className='cell fly';f.textContent=v;
+    const f=document.createElement('div');f.className='cell fly '+(G.kind[i]||'');f.style.setProperty('--tilt',cells[i].style.getPropertyValue('--tilt'));f.textContent=v;
     f.style.cssText=`left:${rc.left}px;top:${rc.top}px;width:${rc.width}px;height:${rc.height}px;--dx:${(k%2?1:-1)*(10+Math.random()*16)}px;--r:${(k%2?1:-1)*20}deg;animation-delay:${k*40}ms`;
     document.body.appendChild(f);setTimeout(()=>f.remove(),700+k*40);
   });
@@ -790,7 +856,7 @@ function endGame(reason){
   const nb=best!=null&&G.sYou>best;$('newBest').hidden=!nb;$('newBest').textContent=t('newBest');
   $('resultCat').innerHTML=win
     ? catSVG(150,false)+'<span class="s" style="left:-6px;top:10px">☆</span><span class="s" style="right:-4px;top:-4px">★</span><span class="s" style="right:-14px;top:60px">☆</span><span class="s" style="left:6px;top:-12px;font-size:15px">★</span>'
-    : catSVG(150,true)+'<span class="s" style="right:-6px;top:0;font-family:var(--f-num);font-size:28px">z z</span>';
+    : catSVG(150,true,'',g.id)+'<span class="s" style="right:-6px;top:0;font-family:var(--f-num);font-size:28px">z z</span>';
   $('verdict').textContent=tie?t('tie'):win?t('win',v):t('lose',v);
   $('rYou').textContent=G.sYou;$('rGhost').textContent=G.sGh;$('rGhostName').textContent=name;
   $('rWho').textContent=t('ghostOf',{name});$('rLine').textContent=G.lastLine;
